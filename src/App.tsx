@@ -1,10 +1,16 @@
-import "./App.css";
+import { DndProvider } from "react-dnd";
+import BookingPage from "./components/BookingPage";
+import { HTML5Backend } from "react-dnd-html5-backend";
 
 function App() {
   return (
-    <div className="h-full flex justify-center items-center">
-      <h1>hello</h1>
-    </div>
+    <DndProvider backend={HTML5Backend}>
+      <div className="h-full bg-slate-500 p-10">
+        <div className="mx-auto flex h-full max-w-[1100px]">
+          <BookingPage />
+        </div>
+      </div>
+    </DndProvider>
   );
 }
 
