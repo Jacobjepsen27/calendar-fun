@@ -1,6 +1,7 @@
 import { DndProvider } from "react-dnd";
 import BookingPage from "./components/BookingPage";
 import { HTML5Backend } from "react-dnd-html5-backend";
+import CustomDragLayer from "./components/CustomDragLayer";
 
 function App() {
   return (
@@ -10,6 +11,7 @@ function App() {
           <BookingPage />
         </div>
       </div>
+      {/* <CustomDragLayer /> */}
     </DndProvider>
   );
 }

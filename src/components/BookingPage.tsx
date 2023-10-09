@@ -1,4 +1,7 @@
+import { useEffect, useState } from "react";
 import { useDrag, useDrop } from "react-dnd";
+import { getEmptyImage } from "react-dnd-html5-backend";
+
 type DropItem = { id: number };
 type DropEventHandler = (day: Date, eventId: number) => void;
 const ItemTypes = {
@@ -7,13 +10,17 @@ const ItemTypes = {
 
 type EventProps = { id: number };
 const Event = ({ id }: EventProps) => {
-  const [{ isDragging }, dragRef] = useDrag({
+  const [{ isDragging }, dragRef, dragPreview] = useDrag({
     type: ItemTypes.EVENT,
     collect: (monitor) => ({
       isDragging: !!monitor.isDragging(),
     }),
     item: { id },
   });
+
+  useEffect(() => {
+    dragPreview(getEmptyImage(), { captureDraggingState: true });
+  }, []);
 
   return (
     <div
@@ -34,10 +41,47 @@ type ColumnProps = {
   children?: React.ReactNode;
 };
 const Column = ({ day, onDropEvent, children }: ColumnProps) => {
-  const [, dropRef] = useDrop({
+  const [{ isHovered, item }, dropRef] = useDrop({
     accept: ItemTypes.EVENT,
     drop: (item: DropItem) => onDropEvent(day, item.id),
+    collect: (monitor) => {
+      return {
+        isHovered: monitor.isOver(),
+        item: monitor.getItem(),
+        // curserPos: monitor.getClientOffset(),
+      };
+    },
+
+    // hover(item, monitor) {
+    //   console.log("x", monitor.getSourceClientOffset()?.x);
+    // },
   });
+
+  console.log("isHovered", isHovered, "- item: ", item);
+
+  const [position, setPosition] = useState<{ x: number; y: number }>({
+    x: 0,
+    y: 0,
+  });
+
+  useEffect(() => {
+    const handleMouseMove = (event: MouseEvent) => {
+      console.log("position: ", position);
+      setPosition({
+        x: event.clientX,
+        y: event.clientY,
+      });
+    };
+    if (isHovered) {
+      // Add event listener for the mouse movement
+      window.addEventListener("mousemove", handleMouseMove);
+    }
+
+    // Clean up the event listener when the component is unmounted
+    return () => {
+      window.removeEventListener("mousemove", handleMouseMove);
+    };
+  }, []);
 
   return (
     <div
@@ -45,13 +89,19 @@ const Column = ({ day, onDropEvent, children }: ColumnProps) => {
       className="relative min-w-[81px] flex-1 border border-cyan-600"
     >
       {children}
+      {isHovered && position && (
+        <div
+          className="h-[70px] w-[90%] bg-blue-600"
+          style={{ transform: `translateY(${position.y}px)` }}
+        >
+          Ghost
+        </div>
+      )}
     </div>
   );
 };
 
 function BookingPage() {
-  // TODO: need this components height and width to calculate what each cell should be
-
   const handleDropEvent: DropEventHandler = (day, eventId) => {
     console.log(`Event ${eventId} dropped on ${day}`);
     // Update your state here
@@ -90,15 +140,6 @@ function BookingPage() {
           day={new Date(2023, 9, 8)}
           onDropEvent={handleDropEvent}
         ></Column>
-        {/* <div className="relative min-w-[81px] flex-1 border border-cyan-600">
-          <Event id={1} />
-        </div>
-        <div className="relative min-w-[81px] flex-1 border border-cyan-600"></div>
-        <div className="relative min-w-[81px] flex-1 border border-cyan-600"></div>
-        <div className="relative min-w-[81px] flex-1 border border-cyan-600"></div>
-        <div className="relative min-w-[81px] flex-1 border border-cyan-600"></div>
-        <div className="relative min-w-[81px] flex-1 border border-cyan-600"></div>
-        <div className="relative min-w-[81px] flex-1 border border-cyan-600"></div> */}
       </div>
     </div>
   );
