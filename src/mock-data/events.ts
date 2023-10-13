@@ -1,5 +1,5 @@
 import { set } from "date-fns";
-import { Event } from "../components/BookingPageV2";
+import { Event } from "../components/BookingPage";
 import { v4 as uuid } from "uuid";
 
 export const EVENTS_DATA: Event[] = [

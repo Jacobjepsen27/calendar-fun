@@ -1,148 +1,199 @@
-import { useEffect, useState } from "react";
-import { useDrag, useDrop } from "react-dnd";
-import { getEmptyImage } from "react-dnd-html5-backend";
+import { differenceInMinutes, set } from "date-fns";
+import { v4 as uuid } from "uuid";
+import { CSSProperties, useEffect, useMemo, useRef, useState } from "react";
+import { PanInfo, Point, motion } from "framer-motion";
+import {
+  getCurrentWeeks,
+  getLeftPixels,
+  getPixelHeightFromMinutes,
+  getTopPixels,
+} from "../utils/common";
+import { EVENTS_DATA } from "../mock-data/events";
+import { getRelativeClickCoordinates } from "../utils/layout";
 
-type DropItem = { id: number };
-type DropEventHandler = (day: Date, eventId: number) => void;
-const ItemTypes = {
-  EVENT: "event",
+const arrayFromNumber = (count: number) => {
+  let arr = [...Array(count)].map((_, i) => i);
+  return arr;
 };
 
-type EventProps = { id: number };
-const Event = ({ id }: EventProps) => {
-  const [{ isDragging }, dragRef, dragPreview] = useDrag({
-    type: ItemTypes.EVENT,
-    collect: (monitor) => ({
-      isDragging: !!monitor.isDragging(),
-    }),
-    item: { id },
-  });
+export type Event = {
+  id: string;
+  name: string;
+  from: Date;
+  to: Date;
+};
 
-  useEffect(() => {
-    dragPreview(getEmptyImage(), { captureDraggingState: true });
-  }, []);
+type EventViewModel = Event & {
+  left: number;
+  top: number;
+  width: number;
+  height: number;
+};
 
+export type DateColumn = {
+  index: number;
+  date: Date;
+};
+
+const Cell = () => {
   return (
-    <div
-      ref={dragRef}
-      style={{
-        opacity: isDragging ? 0.5 : 1,
-      }}
-      className="absolute left-0 top-12 h-[70px] w-[90%] bg-blue-600"
-    >
-      <div className="flex h-full items-center justify-center">Event {id}</div>
-    </div>
+    <div className="w-full shrink-0 basis-[48px] border-r-[1px] border-t-[1px] border-solid"></div>
   );
 };
 
-type ColumnProps = {
-  day: Date;
-  onDropEvent: (day: Date, itemId: number) => void;
-  children?: React.ReactNode;
+type CalendarGridProps = {
+  columns?: number;
+  rows?: number;
 };
-const Column = ({ day, onDropEvent, children }: ColumnProps) => {
-  const [{ isHovered, item }, dropRef] = useDrop({
-    accept: ItemTypes.EVENT,
-    drop: (item: DropItem) => onDropEvent(day, item.id),
-    collect: (monitor) => {
-      return {
-        isHovered: monitor.isOver(),
-        item: monitor.getItem(),
-        // curserPos: monitor.getClientOffset(),
-      };
-    },
-
-    // hover(item, monitor) {
-    //   console.log("x", monitor.getSourceClientOffset()?.x);
-    // },
-  });
-
-  console.log("isHovered", isHovered, "- item: ", item);
-
-  const [position, setPosition] = useState<{ x: number; y: number }>({
-    x: 0,
-    y: 0,
-  });
-
-  useEffect(() => {
-    const handleMouseMove = (event: MouseEvent) => {
-      console.log("position: ", position);
-      setPosition({
-        x: event.clientX,
-        y: event.clientY,
-      });
-    };
-    if (isHovered) {
-      // Add event listener for the mouse movement
-      window.addEventListener("mousemove", handleMouseMove);
-    }
-
-    // Clean up the event listener when the component is unmounted
-    return () => {
-      window.removeEventListener("mousemove", handleMouseMove);
-    };
-  }, []);
-
+const CalendarGridUI = ({ columns = 7, rows = 24 }: CalendarGridProps) => {
   return (
-    <div
-      ref={dropRef}
-      className="relative min-w-[81px] flex-1 border border-cyan-600"
-    >
-      {children}
-      {isHovered && position && (
-        <div
-          className="h-[70px] w-[90%] bg-blue-600"
-          style={{ transform: `translateY(${position.y}px)` }}
-        >
-          Ghost
+    <div className="flex w-full">
+      {/* columns */}
+      {arrayFromNumber(columns).map((col) => (
+        <div key={col} className="flex flex-grow flex-col border-solid">
+          {/* Cells */}
+          {arrayFromNumber(rows).map((row) => (
+            <Cell key={`${col}-${row}`} />
+          ))}
         </div>
-      )}
+      ))}
     </div>
   );
 };
 
-function BookingPage() {
-  const handleDropEvent: DropEventHandler = (day, eventId) => {
-    console.log(`Event ${eventId} dropped on ${day}`);
-    // Update your state here
+type EventProps = {
+  event: EventViewModel;
+};
+const Event = ({ event }: EventProps) => {
+  // Ideally this should only be responsible for showing data and acting as a button
+  return (
+    <button
+      onClick={() => console.log("clicked event ", event.id)}
+      className="h-full w-full bg-green-500"
+    >
+      {event.name}
+    </button>
+  );
+};
+
+type EventPositionedProps = {
+  eventViewModel: EventViewModel;
+};
+const EventPositioned = (props: EventPositionedProps) => {
+  const { eventViewModel } = props;
+
+  const ref = useRef<HTMLDivElement | null>(null);
+  const handlePan = (event: PointerEvent, info: PanInfo) => {
+    if (ref.current) {
+      console.log("onPan", event, info);
+      const offset = info.offset;
+      // TODO: before setting transform, we need to calculate where on the grid to place it based on pointer event
+      //   ref.current.style.transform = `translate(${offset.x}px, ${offset.y}px)`;
+    }
   };
 
+  // TODO: save the event's position in state top calculate correct transform etc
+  // TODO: fix Event click, when dragging. Maybe check inside onClick that isDragging is not enabled
   return (
-    <div className="flex h-full w-full flex-col border border-black ">
-      {/* Header */}
+    <motion.div
+      ref={ref}
+      className="absolute"
+      style={{
+        left: eventViewModel.left,
+        top: eventViewModel.top,
+        height: eventViewModel.height,
+        width: eventViewModel.width,
+      }}
+      onPan={handlePan}
+    >
+      <Event event={eventViewModel} />
+    </motion.div>
+  );
+};
+
+const BookingPageV2 = () => {
+  /**
+   * Render events when ref has been initialized
+   */
+  const [refInitialized, setRefInitialized] = useState(false);
+  const containerRef = useRef<HTMLDivElement | null>(null);
+  useEffect(() => {
+    if (containerRef.current == null) return;
+    setRefInitialized(true);
+  }, [containerRef.current]);
+
+  /**
+   * Initialize date columns and events
+   */
+  const [events, setEvents] = useState<Event[]>(EVENTS_DATA);
+  const [columns, _] = useState<DateColumn[]>(() => {
+    const weeks = getCurrentWeeks(new Date());
+    return weeks.map((date, index) => ({ index, date }));
+  });
+
+  const [eventViewModels, setEventViewModels] = useState<EventViewModel[]>([]);
+  useEffect(() => {
+    if (containerRef.current != null) {
+      const events = EVENTS_DATA;
+      const containerRectangle = containerRef.current.getBoundingClientRect();
+      const calculatePosition = (
+        event: Event,
+      ): [number, number, number, number] => {
+        const eventHeight = getPixelHeightFromMinutes(
+          differenceInMinutes(event.to, event.from),
+        );
+        const columnWidth = containerRectangle.width / columns.length;
+        const topPx = getTopPixels(event.from);
+        const leftPx = getLeftPixels(event.from, columns, columnWidth);
+
+        return [leftPx, topPx, eventHeight, columnWidth];
+      };
+      const viewModels: EventViewModel[] = events.map((event) => {
+        const [left, top, height, width] = calculatePosition(event);
+        return {
+          ...event,
+          left,
+          top,
+          width,
+          height,
+        };
+      });
+      setEventViewModels(viewModels);
+    }
+  }, [events, refInitialized]);
+
+  return (
+    <div className=" borde-white flex max-h-[90%] w-full max-w-[90%] flex-col border ">
       <div className="border border-black">Monday - sunday</div>
-      {/* Drag n' Drop container */}
-      <div className="flex h-full border border-cyan-800">
-        <Column day={new Date(2023, 9, 2)} onDropEvent={handleDropEvent}>
-          <Event id={1} />
-        </Column>
-        <Column
-          day={new Date(2023, 9, 3)}
-          onDropEvent={handleDropEvent}
-        ></Column>
-        <Column
-          day={new Date(2023, 9, 4)}
-          onDropEvent={handleDropEvent}
-        ></Column>
-        <Column
-          day={new Date(2023, 9, 5)}
-          onDropEvent={handleDropEvent}
-        ></Column>
-        <Column
-          day={new Date(2023, 9, 6)}
-          onDropEvent={handleDropEvent}
-        ></Column>
-        <Column
-          day={new Date(2023, 9, 7)}
-          onDropEvent={handleDropEvent}
-        ></Column>
-        <Column
-          day={new Date(2023, 9, 8)}
-          onDropEvent={handleDropEvent}
-        ></Column>
+
+      <div className="overflow-auto">
+        <div className="relative flex">
+          <CalendarGridUI columns={columns.length} />
+          {/* Events UI  */}
+          <div
+            ref={containerRef}
+            className="absolute inset-0"
+            onClick={(event) => {
+              const [relativeX, relativeY] = getRelativeClickCoordinates(
+                event,
+                containerRef.current!,
+              );
+              console.log(
+                `Mouse position within container: X=${relativeX}, Y=${relativeY}`,
+              );
+            }}
+          >
+            {eventViewModels.map((eventViewModel) => (
+              <EventPositioned
+                key={eventViewModel.id}
+                eventViewModel={eventViewModel}
+              />
+            ))}
+          </div>
+        </div>
       </div>
     </div>
   );
-}
+};
 
-export default BookingPage;
+export default BookingPageV2;

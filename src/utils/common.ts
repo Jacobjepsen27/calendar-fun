@@ -1,5 +1,5 @@
 import { differenceInMinutes, eachDayOfInterval, endOfWeek, isSameDay, startOfDay, startOfWeek } from "date-fns";
-import { DateColumn } from "../components/BookingPageV2";
+import { DateColumn } from "../components/BookingPage";
 
 // Each cell has static height of 48px (48/60)
 const MinuteToPixelFactor = 0.8;
