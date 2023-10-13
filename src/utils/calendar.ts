@@ -1,3 +1,24 @@
+import { differenceInMinutes, startOfDay } from "date-fns";
+import { DateColumn } from "../components/BookingPage";
+import { findDateIndex } from "./dates";
+
+// Each cell has static height of 48px (48/60)
+const MinuteToPixelFactor = 0.8;
+export const getPixelHeightFromMinutes = (minutes: number) => {
+    return minutes * MinuteToPixelFactor;
+}
+
+export const getTopPixels = (date: Date) => {
+    const midnight = startOfDay(date);
+    return getPixelHeightFromMinutes(differenceInMinutes(date, midnight));
+}
+
+export const getLeftPixels = (date: Date, dates: DateColumn[], columnWidth: number) => {
+    // Need to know what each column represents to offset correctly
+    const index = findDateIndex(dates.map(d => d.date), date);
+    return index*columnWidth
+}
+
 /**
  * @param event 
  * @param container 

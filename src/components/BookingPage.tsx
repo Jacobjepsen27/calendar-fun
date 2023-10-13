@@ -1,15 +1,14 @@
-import { differenceInMinutes, set } from "date-fns";
-import { v4 as uuid } from "uuid";
-import { CSSProperties, useEffect, useMemo, useRef, useState } from "react";
-import { PanInfo, Point, motion } from "framer-motion";
+import { differenceInMinutes } from "date-fns";
+import { useEffect, useRef, useState } from "react";
+import { PanInfo, motion } from "framer-motion";
+import { getCurrentWeeks } from "../utils/dates";
+import { EVENTS_DATA } from "../mock-data/events";
 import {
-  getCurrentWeeks,
   getLeftPixels,
   getPixelHeightFromMinutes,
+  getRelativeClickCoordinates,
   getTopPixels,
-} from "../utils/common";
-import { EVENTS_DATA } from "../mock-data/events";
-import { getRelativeClickCoordinates } from "../utils/layout";
+} from "../utils/calendar";
 
 const arrayFromNumber = (count: number) => {
   let arr = [...Array(count)].map((_, i) => i);
