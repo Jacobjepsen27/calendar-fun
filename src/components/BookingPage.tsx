@@ -1,9 +1,10 @@
-import { differenceInMinutes } from "date-fns";
+import { differenceInMinutes, setHours } from "date-fns";
 import { useEffect, useRef, useState } from "react";
 import { PanInfo, motion } from "framer-motion";
 import { getCurrentWeeks } from "../utils/dates";
 import { EVENTS_DATA } from "../mock-data/events";
 import {
+  getDateFromCoordinates,
   getLeftPixels,
   getPixelHeightFromMinutes,
   getRelativeClickCoordinates,
@@ -122,9 +123,8 @@ const BookingPageV2 = () => {
   }, [containerRef.current]);
 
   /**
-   * Initialize date columns and events
+   * Initialize date columns
    */
-  const [events, setEvents] = useState<Event[]>(EVENTS_DATA);
   const [columns, _] = useState<DateColumn[]>(() => {
     const weeks = getCurrentWeeks(new Date());
     return weeks.map((date, index) => ({ index, date }));
@@ -159,7 +159,7 @@ const BookingPageV2 = () => {
       });
       setEventViewModels(viewModels);
     }
-  }, [events, refInitialized]);
+  }, [refInitialized]);
 
   return (
     <div className=" borde-white flex max-h-[90%] w-full max-w-[90%] flex-col border ">
@@ -173,13 +173,22 @@ const BookingPageV2 = () => {
             ref={containerRef}
             className="absolute inset-0"
             onClick={(event) => {
+              // Get relative coordinates in container
               const [relativeX, relativeY] = getRelativeClickCoordinates(
                 event,
                 containerRef.current!,
               );
-              console.log(
-                `Mouse position within container: X=${relativeX}, Y=${relativeY}`,
+              // calculate date from coordinates
+              const columnWidth =
+                containerRef.current!.getBoundingClientRect().width /
+                columns.length;
+
+              const newDate = getDateFromCoordinates(
+                [relativeX, relativeY],
+                columnWidth,
+                columns,
               );
+              console.log("newDate: ", newDate);
             }}
           >
             {eventViewModels.map((eventViewModel) => (

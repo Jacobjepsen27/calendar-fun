@@ -1,9 +1,10 @@
-import { differenceInMinutes, startOfDay } from "date-fns";
+import { differenceInMinutes, setHours, startOfDay } from "date-fns";
 import { DateColumn } from "../components/BookingPage";
 import { findDateIndex } from "./dates";
 
 // Each cell has static height of 48px (48/60)
-const MinuteToPixelFactor = 0.8;
+export const CELL_HEIGHT = 48;
+const MinuteToPixelFactor = CELL_HEIGHT/60;
 export const getPixelHeightFromMinutes = (minutes: number) => {
     return minutes * MinuteToPixelFactor;
 }
@@ -39,4 +40,21 @@ export const getRelativeClickCoordinates = <T extends Element>(event: React.Mous
       mouseY - rect.top + container.scrollTop;
 
     return [relativeX, relativeY]
+}
+
+/**
+ * 
+ * @param coordinates 
+ * @param columnWidth 
+ * @param columns 
+ * @returns Date with hours set to know hen
+ */
+export const getDateFromCoordinates = (coordinates: [number, number], columnWidth: number, columns: DateColumn[]): Date => {
+  
+// Using math floor to get integer, which can be used to index column array
+const dayIndex = Math.floor(coordinates[0] / columnWidth);
+const day = columns[dayIndex];
+
+const hour = Math.floor(coordinates[1] / CELL_HEIGHT);
+return setHours(day.date, hour);
 }
