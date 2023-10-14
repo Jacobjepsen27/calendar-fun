@@ -2,16 +2,13 @@ import { differenceInMinutes, setHours, startOfDay } from "date-fns";
 import { DateColumn } from "../components/BookingPage";
 import { findDateIndex } from "./dates";
 
-// Each cell has static height of 48px (48/60)
-export const CELL_HEIGHT = 48;
-const MinuteToPixelFactor = CELL_HEIGHT/60;
-export const getPixelHeightFromMinutes = (minutes: number) => {
-    return minutes * MinuteToPixelFactor;
+export const getPixelHeightFromMinutes = (minutes: number, cellHeight: number) => {
+    return minutes * (cellHeight/60);
 }
 
-export const getTopPixels = (date: Date) => {
+export const getTopPixels = (date: Date, cellHeight: number) => {
     const midnight = startOfDay(date);
-    return getPixelHeightFromMinutes(differenceInMinutes(date, midnight));
+    return getPixelHeightFromMinutes(differenceInMinutes(date, midnight), cellHeight);
 }
 
 export const getLeftPixels = (date: Date, dates: DateColumn[], columnWidth: number) => {
@@ -25,7 +22,7 @@ export const getLeftPixels = (date: Date, dates: DateColumn[], columnWidth: numb
  * @param container 
  * Returns the coordinates relative to the container provided
  */
-export const getRelativeClickCoordinates = <T extends Element>(event: React.MouseEvent<T, MouseEvent>, container: HTMLElement): [number, number] => {
+export const getRelativeClickCoordinates = <T extends {clientX: number, clientY: number}>(event: T, container: HTMLElement): [number, number] => {
     // Mouse position relative to the viewport
     const mouseX = event.clientX;
     const mouseY = event.clientY;
@@ -47,14 +44,19 @@ export const getRelativeClickCoordinates = <T extends Element>(event: React.Mous
  * @param coordinates 
  * @param columnWidth 
  * @param columns 
- * @returns Date with hours set to know hen
+ * @returns Date with hours set to know
  */
-export const getDateFromCoordinates = (coordinates: [number, number], columnWidth: number, columns: DateColumn[]): Date => {
+export const getDateFromCoordinates = (
+  [mouseX,mouseY]: [number, number], 
+  columnWidth: number,
+   columns: DateColumn[], 
+   cellHeight: number): Date => 
+   {
   
 // Using math floor to get integer, which can be used to index column array
-const dayIndex = Math.floor(coordinates[0] / columnWidth);
+const dayIndex = Math.floor(mouseX / columnWidth);
 const day = columns[dayIndex];
 
-const hour = Math.floor(coordinates[1] / CELL_HEIGHT);
+const hour = Math.floor(mouseY / cellHeight);
 return setHours(day.date, hour);
 }

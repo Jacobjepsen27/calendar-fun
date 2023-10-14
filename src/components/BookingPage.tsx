@@ -1,5 +1,5 @@
-import { differenceInMinutes, setHours } from "date-fns";
-import { useEffect, useRef, useState } from "react";
+import { differenceInMinutes } from "date-fns";
+import { useEffect, useMemo, useRef, useState } from "react";
 import { PanInfo, motion } from "framer-motion";
 import { getCurrentWeeks } from "../utils/dates";
 import { EVENTS_DATA } from "../mock-data/events";
@@ -78,21 +78,21 @@ const Event = ({ event }: EventProps) => {
 
 type EventPositionedProps = {
   eventViewModel: EventViewModel;
+  onPanHandle: (event: PointerEvent) => [number, number];
 };
 const EventPositioned = (props: EventPositionedProps) => {
-  const { eventViewModel } = props;
+  const { eventViewModel, onPanHandle } = props;
 
   const ref = useRef<HTMLDivElement | null>(null);
   const handlePan = (event: PointerEvent, info: PanInfo) => {
     if (ref.current) {
-      console.log("onPan", event, info);
-      const offset = info.offset;
-      // TODO: before setting transform, we need to calculate where on the grid to place it based on pointer event
-      //   ref.current.style.transform = `translate(${offset.x}px, ${offset.y}px)`;
+      const [x, y] = onPanHandle(event);
+      const offsetX = x - eventViewModel.left;
+      const offsetY = y - eventViewModel.top;
+      ref.current.style.transform = `translate(${offsetX}px, ${offsetY}px)`;
     }
   };
 
-  // TODO: save the event's position in state top calculate correct transform etc
   // TODO: fix Event click, when dragging. Maybe check inside onClick that isDragging is not enabled
   return (
     <motion.div
@@ -111,44 +111,49 @@ const EventPositioned = (props: EventPositionedProps) => {
   );
 };
 
-const BookingPageV2 = () => {
-  /**
-   * Render events when ref has been initialized
-   */
-  const [refInitialized, setRefInitialized] = useState(false);
+const useCalendar = () => {
   const containerRef = useRef<HTMLDivElement | null>(null);
-  useEffect(() => {
-    if (containerRef.current == null) return;
-    setRefInitialized(true);
-  }, [containerRef.current]);
 
-  /**
-   * Initialize date columns
-   */
   const [columns, _] = useState<DateColumn[]>(() => {
     const weeks = getCurrentWeeks(new Date());
     return weeks.map((date, index) => ({ index, date }));
   });
 
+  const columnWidth = useMemo(() => {
+    if (containerRef.current == null) return 1;
+    return containerRef.current.getBoundingClientRect().width / columns.length;
+  }, [columns, containerRef.current]);
+
+  const cellHeight = 48; //px
+
+  return {
+    ref: containerRef,
+    columns,
+    columnWidth,
+    cellHeight,
+  };
+};
+
+const BookingPageV2 = () => {
+  const { ref, cellHeight, columnWidth, columns } = useCalendar();
+
   const [eventViewModels, setEventViewModels] = useState<EventViewModel[]>([]);
   useEffect(() => {
-    if (containerRef.current != null) {
-      const events = EVENTS_DATA;
-      const containerRectangle = containerRef.current.getBoundingClientRect();
+    if (ref.current != null) {
       const calculatePosition = (
         event: Event,
       ): [number, number, number, number] => {
         const eventHeight = getPixelHeightFromMinutes(
           differenceInMinutes(event.to, event.from),
+          cellHeight,
         );
-        const columnWidth = containerRectangle.width / columns.length;
-        const topPx = getTopPixels(event.from);
+        const topPx = getTopPixels(event.from, cellHeight);
         const leftPx = getLeftPixels(event.from, columns, columnWidth);
-
         return [leftPx, topPx, eventHeight, columnWidth];
       };
-      const viewModels: EventViewModel[] = events.map((event) => {
+      const viewModels: EventViewModel[] = EVENTS_DATA.map((event) => {
         const [left, top, height, width] = calculatePosition(event);
+
         return {
           ...event,
           left,
@@ -159,7 +164,40 @@ const BookingPageV2 = () => {
       });
       setEventViewModels(viewModels);
     }
-  }, [refInitialized]);
+  }, [columns, columnWidth, cellHeight]);
+
+  const onCalendarClick: React.MouseEventHandler = (event) => {
+    // Get relative coordinates in container
+    const [relativeX, relativeY] = getRelativeClickCoordinates(
+      event,
+      ref.current!,
+    );
+    // calculate date from coordinates
+    const newDate = getDateFromCoordinates(
+      [relativeX, relativeY],
+      columnWidth,
+      columns,
+      cellHeight,
+    );
+    console.log("newDate: ", newDate);
+  };
+
+  const onPanHandle = (event: PointerEvent): [number, number] => {
+    const [relativeX, relativeY] = getRelativeClickCoordinates(
+      event,
+      ref.current!,
+    );
+    // calculate date from coordinates
+    const newDate = getDateFromCoordinates(
+      [relativeX, relativeY],
+      columnWidth,
+      columns,
+      cellHeight,
+    );
+    const topPx = getTopPixels(newDate, cellHeight);
+    const leftPx = getLeftPixels(newDate, columns, columnWidth);
+    return [leftPx, topPx];
+  };
 
   return (
     <div className=" borde-white flex max-h-[90%] w-full max-w-[90%] flex-col border ">
@@ -169,32 +207,12 @@ const BookingPageV2 = () => {
         <div className="relative flex">
           <CalendarGridUI columns={columns.length} />
           {/* Events UI  */}
-          <div
-            ref={containerRef}
-            className="absolute inset-0"
-            onClick={(event) => {
-              // Get relative coordinates in container
-              const [relativeX, relativeY] = getRelativeClickCoordinates(
-                event,
-                containerRef.current!,
-              );
-              // calculate date from coordinates
-              const columnWidth =
-                containerRef.current!.getBoundingClientRect().width /
-                columns.length;
-
-              const newDate = getDateFromCoordinates(
-                [relativeX, relativeY],
-                columnWidth,
-                columns,
-              );
-              console.log("newDate: ", newDate);
-            }}
-          >
+          <div ref={ref} className="absolute inset-0" onClick={onCalendarClick}>
             {eventViewModels.map((eventViewModel) => (
               <EventPositioned
                 key={eventViewModel.id}
                 eventViewModel={eventViewModel}
+                onPanHandle={onPanHandle}
               />
             ))}
           </div>
