@@ -83,13 +83,15 @@ type EventPositionedProps = {
 const EventPositioned = (props: EventPositionedProps) => {
   const { eventViewModel, onPanHandle } = props;
 
+  const [offset, setOffset] = useState<[number, number]>([0, 0]);
+
   const ref = useRef<HTMLDivElement | null>(null);
   const handlePan = (event: PointerEvent, info: PanInfo) => {
     if (ref.current) {
       const [x, y] = onPanHandle(event);
       const offsetX = x - eventViewModel.left;
       const offsetY = y - eventViewModel.top;
-      ref.current.style.transform = `translate(${offsetX}px, ${offsetY}px)`;
+      setOffset([offsetX, offsetY]);
     }
   };
 
@@ -105,6 +107,8 @@ const EventPositioned = (props: EventPositionedProps) => {
         width: eventViewModel.width,
       }}
       onPan={handlePan}
+      animate={{ x: offset[0], y: offset[1] }}
+      transition={{ ease: "easeInOut", duration: 0.1 }}
     >
       <Event event={eventViewModel} />
     </motion.div>
