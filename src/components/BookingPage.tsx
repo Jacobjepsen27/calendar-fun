@@ -1,10 +1,8 @@
 import { add, differenceInMinutes } from "date-fns";
 import { useEffect, useState } from "react";
 import {
-  getDateFromCoordinates,
   getLeftPixels,
   getPixelHeightFromMinutes,
-  getRelativeClickCoordinates,
   getTopPixels,
 } from "../utils/calendar";
 import useCalendar from "../hooks/useCalendar";
@@ -21,7 +19,8 @@ export type DateColumn = {
 };
 
 const BookingPageV2 = () => {
-  const { ref, cellHeight, columnWidth, columns } = useCalendar();
+  const { ref, cellHeight, columnWidth, columns, getDateFromEvent } =
+    useCalendar();
   const { events, updateEvent } = useEvents();
 
   const [eventViewModels, setEventViewModels] = useState<
@@ -57,67 +56,34 @@ const BookingPageV2 = () => {
   }, [columns, columnWidth, cellHeight, events]);
 
   const onCalendarClick: React.MouseEventHandler = (event) => {
-    // Get relative coordinates in container
-    const [relativeX, relativeY] = getRelativeClickCoordinates(
-      event,
-      ref.current!,
-    );
-    // calculate date from coordinates
-    const newDate = getDateFromCoordinates(
-      [relativeX, relativeY],
-      columnWidth,
-      columns,
-      cellHeight,
-    );
+    const newDate = getDateFromEvent(event);
     console.log("newDate: ", newDate);
   };
 
   const handleOnPan = (event: PointerEvent): [number, number] => {
-    const [relativeX, relativeY] = getRelativeClickCoordinates(
-      event,
-      ref.current!,
-    );
-    // calculate date from coordinates
-    const newDate = getDateFromCoordinates(
-      [relativeX, relativeY],
-      columnWidth,
-      columns,
-      cellHeight,
-    );
+    const newDate = getDateFromEvent(event);
     const topPx = getTopPixels(newDate, cellHeight);
     const leftPx = getLeftPixels(newDate, columns, columnWidth);
     return [leftPx, topPx];
   };
 
-  const handleOnPanEnd = (e: PointerEvent, eventId: string) => {
+  const handleOnPanEnd = (event: PointerEvent, eventId: string) => {
     const calendarEvent = events.find((e) => e.id === eventId);
     if (calendarEvent) {
-      const [relativeX, relativeY] = getRelativeClickCoordinates(
-        e,
-        ref.current!,
-      );
-      // calculate date from coordinates
-      const newDate = getDateFromCoordinates(
-        [relativeX, relativeY],
-        columnWidth,
-        columns,
-        cellHeight,
-      );
-      const deltaMinutes = differenceInMinutes(
-        calendarEvent.to,
-        calendarEvent.from,
-      );
+      const newDate = getDateFromEvent(event);
       const updatedCalendarEvent: CalendarEvent = {
         ...calendarEvent,
         from: newDate,
-        to: add(newDate, { minutes: deltaMinutes }),
+        to: add(newDate, {
+          minutes: differenceInMinutes(calendarEvent.to, calendarEvent.from),
+        }),
       };
       updateEvent(updatedCalendarEvent);
     }
   };
 
   return (
-    <div className=" borde-white flex max-h-[90%] w-full max-w-[90%] flex-col border ">
+    <div className="borde-white flex max-h-[90%] w-full max-w-[90%] flex-col border ">
       <div className="border border-black">Monday - sunday</div>
 
       <div className="overflow-auto">
