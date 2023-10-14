@@ -11,6 +11,7 @@ type CalendarEventPositionedProps = {
 const CalendarEventPositioned = (props: CalendarEventPositionedProps) => {
   const { eventViewModel: vm, onPan, onPanEnd } = props;
   const eventRef = useRef<HTMLDivElement | null>(null);
+  const mouseMovingRef = useRef(false);
 
   const [offset, setOffset] = useState<[number, number]>([0, 0]);
 
@@ -37,12 +38,27 @@ const CalendarEventPositioned = (props: CalendarEventPositionedProps) => {
         width: vm.width,
         transform: `translate(${offset[0]}px,${offset[1]}px)`,
       }}
+      onPanStart={() => (mouseMovingRef.current = true)}
       onPan={handlePan}
-      onPanEnd={(event) => onPanEnd(event, vm.id)}
+      onPanEnd={(event) => {
+        event.stopPropagation();
+        onPanEnd(event, vm.id);
+        mouseMovingRef.current = false;
+      }}
       // animate={{ x: offset[0], y: offset[1] }}
       // transition={{ ease: "easeInOut", duration: 0.1 }}
     >
-      <CalendarEvent event={vm} />
+      <CalendarEvent
+        event={vm}
+        onClick={(e) => {
+          // Stop event from propagating to avoid the calendars click listener to be triggered
+          e.stopPropagation();
+          // Don't trigger this click event in case we are dragging
+          if (mouseMovingRef.current === false) {
+            console.log("clicked event ", vm.id);
+          }
+        }}
+      />
     </motion.div>
   );
 };

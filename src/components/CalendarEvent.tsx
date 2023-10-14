@@ -1,15 +1,14 @@
+import { MouseEventHandler } from "react";
 import { CalendarEventViewModel } from "../hooks/useEvents";
 
 type CalendarEventProps = {
   event: CalendarEventViewModel;
+  onClick: MouseEventHandler;
 };
-const CalendarEvent = ({ event }: CalendarEventProps) => {
+const CalendarEvent = ({ event, onClick }: CalendarEventProps) => {
   // Ideally this should only be responsible for showing data and acting as a button
   return (
-    <button
-      onClick={() => console.log("clicked event ", event.id)}
-      className="h-full w-full bg-green-500"
-    >
+    <button onClick={onClick} className="h-full w-full bg-green-500">
       {event.name}
     </button>
   );

@@ -27,6 +27,7 @@ const BookingPageV2 = () => {
   const [eventViewModels, setEventViewModels] = useState<
     CalendarEventViewModel[]
   >([]);
+
   useEffect(() => {
     if (ref.current != null) {
       const calculatePosition = (
