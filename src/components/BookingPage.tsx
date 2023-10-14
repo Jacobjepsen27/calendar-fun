@@ -1,5 +1,5 @@
-import { differenceInMinutes } from "date-fns";
-import { useEffect, useMemo, useRef, useState } from "react";
+import { add, differenceInMinutes } from "date-fns";
+import { useEffect, useLayoutEffect, useMemo, useRef, useState } from "react";
 import { PanInfo, motion } from "framer-motion";
 import { getCurrentWeeks } from "../utils/dates";
 import { EVENTS_DATA } from "../mock-data/events";
@@ -78,39 +78,44 @@ const Event = ({ event }: EventProps) => {
 
 type EventPositionedProps = {
   eventViewModel: EventViewModel;
-  onPanHandle: (event: PointerEvent) => [number, number];
+  onPan: (event: PointerEvent) => [number, number];
+  onPanEnd: (event: PointerEvent, eventId: string) => void;
 };
 const EventPositioned = (props: EventPositionedProps) => {
-  const { eventViewModel, onPanHandle } = props;
+  const { eventViewModel: vm, onPan, onPanEnd } = props;
+  const eventRef = useRef<HTMLDivElement | null>(null);
 
   const [offset, setOffset] = useState<[number, number]>([0, 0]);
 
-  const ref = useRef<HTMLDivElement | null>(null);
+  useLayoutEffect(() => {
+    setOffset([0, 0]);
+  }, [vm.left, vm.top]);
+
   const handlePan = (event: PointerEvent, info: PanInfo) => {
-    if (ref.current) {
-      const [x, y] = onPanHandle(event);
-      const offsetX = x - eventViewModel.left;
-      const offsetY = y - eventViewModel.top;
-      setOffset([offsetX, offsetY]);
-    }
+    const [x, y] = onPan(event);
+    const offsetX = x - vm.left;
+    const offsetY = y - vm.top;
+    setOffset([offsetX, offsetY]);
   };
 
   // TODO: fix Event click, when dragging. Maybe check inside onClick that isDragging is not enabled
   return (
     <motion.div
-      ref={ref}
+      ref={eventRef}
       className="absolute"
       style={{
-        left: eventViewModel.left,
-        top: eventViewModel.top,
-        height: eventViewModel.height,
-        width: eventViewModel.width,
+        left: vm.left,
+        top: vm.top,
+        height: vm.height,
+        width: vm.width,
+        transform: `translate(${offset[0]}px,${offset[1]}px)`,
       }}
       onPan={handlePan}
-      animate={{ x: offset[0], y: offset[1] }}
-      transition={{ ease: "easeInOut", duration: 0.1 }}
+      onPanEnd={(event) => onPanEnd(event, vm.id)}
+      // animate={{ x: offset[0], y: offset[1] }}
+      // transition={{ ease: "easeInOut", duration: 0.1 }}
     >
-      <Event event={eventViewModel} />
+      <Event event={vm} />
     </motion.div>
   );
 };
@@ -138,9 +143,21 @@ const useCalendar = () => {
   };
 };
 
+const useEvents = () => {
+  const [events, setEvents] = useState<Event[]>(EVENTS_DATA);
+
+  const updateEvent = (event: Event) => {
+    let updatedList = events.filter((e) => e.id !== event.id);
+    updatedList.push(event);
+    setEvents(updatedList);
+  };
+  return { events, updateEvent };
+};
+
 const BookingPageV2 = () => {
   const { ref, cellHeight, columnWidth, columns } = useCalendar();
-
+  const { events, updateEvent } = useEvents();
+  console.log(events);
   const [eventViewModels, setEventViewModels] = useState<EventViewModel[]>([]);
   useEffect(() => {
     if (ref.current != null) {
@@ -155,7 +172,7 @@ const BookingPageV2 = () => {
         const leftPx = getLeftPixels(event.from, columns, columnWidth);
         return [leftPx, topPx, eventHeight, columnWidth];
       };
-      const viewModels: EventViewModel[] = EVENTS_DATA.map((event) => {
+      const viewModels: EventViewModel[] = events.map((event) => {
         const [left, top, height, width] = calculatePosition(event);
 
         return {
@@ -168,7 +185,7 @@ const BookingPageV2 = () => {
       });
       setEventViewModels(viewModels);
     }
-  }, [columns, columnWidth, cellHeight]);
+  }, [columns, columnWidth, cellHeight, events]);
 
   const onCalendarClick: React.MouseEventHandler = (event) => {
     // Get relative coordinates in container
@@ -186,7 +203,7 @@ const BookingPageV2 = () => {
     console.log("newDate: ", newDate);
   };
 
-  const onPanHandle = (event: PointerEvent): [number, number] => {
+  const handleOnPan = (event: PointerEvent): [number, number] => {
     const [relativeX, relativeY] = getRelativeClickCoordinates(
       event,
       ref.current!,
@@ -203,6 +220,30 @@ const BookingPageV2 = () => {
     return [leftPx, topPx];
   };
 
+  const handleOnPanEnd = (e: PointerEvent, eventId: string) => {
+    const event = events.find((e) => e.id === eventId);
+    if (event) {
+      const [relativeX, relativeY] = getRelativeClickCoordinates(
+        e,
+        ref.current!,
+      );
+      // calculate date from coordinates
+      const newDate = getDateFromCoordinates(
+        [relativeX, relativeY],
+        columnWidth,
+        columns,
+        cellHeight,
+      );
+      const deltaMinutes = differenceInMinutes(event.to, event.from);
+      const updatedEvent: Event = {
+        ...event,
+        from: newDate,
+        to: add(newDate, { minutes: deltaMinutes }),
+      };
+      updateEvent(updatedEvent);
+    }
+  };
+
   return (
     <div className=" borde-white flex max-h-[90%] w-full max-w-[90%] flex-col border ">
       <div className="border border-black">Monday - sunday</div>
@@ -216,7 +257,8 @@ const BookingPageV2 = () => {
               <EventPositioned
                 key={eventViewModel.id}
                 eventViewModel={eventViewModel}
-                onPanHandle={onPanHandle}
+                onPan={handleOnPan}
+                onPanEnd={handleOnPanEnd}
               />
             ))}
           </div>
