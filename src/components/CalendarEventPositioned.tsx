@@ -1,6 +1,6 @@
 import { PanInfo, motion } from "framer-motion";
 import { CalendarEventViewModel } from "../hooks/useEvents";
-import { useRef, useState, useLayoutEffect } from "react";
+import { useRef, useState, useLayoutEffect, CSSProperties } from "react";
 import CalendarEvent from "./CalendarEvent";
 
 type CalendarEventPositionedProps = {
@@ -24,8 +24,19 @@ const CalendarEventPositioned = (props: CalendarEventPositionedProps) => {
     const offsetX = x - vm.left;
     const offsetY = y - vm.top;
     setOffset([offsetX, offsetY]);
-    //TODO: aply styles when dragging: box-shadow, width, cursor
   };
+
+  // When dragging add shadows, cursor
+  const dynamicButtonStyles: CSSProperties = mouseMovingRef.current
+    ? {
+        boxShadow: "0 10px 20px rgba(0,0,0,0.19), 0 6px 6px rgba(0,0,0,0.23)",
+        cursor: "move",
+      }
+    : {};
+
+  // When dragging increase width
+  const dynamicWidthStyle =
+    mouseMovingRef.current == true ? vm.width : vm.width - 12;
 
   return (
     <motion.div
@@ -35,7 +46,7 @@ const CalendarEventPositioned = (props: CalendarEventPositionedProps) => {
         left: vm.left,
         top: vm.top,
         height: vm.height,
-        width: vm.width,
+        width: dynamicWidthStyle,
         transform: `translate(${offset[0]}px,${offset[1]}px)`,
       }}
       onPanStart={() => (mouseMovingRef.current = true)}
@@ -49,8 +60,9 @@ const CalendarEventPositioned = (props: CalendarEventPositionedProps) => {
       // animate={{ x: offset[0], y: offset[1] }}
       // transition={{ ease: "easeInOut", duration: 0.1 }}
     >
-      <CalendarEvent
-        event={vm}
+      <button
+        style={dynamicButtonStyles}
+        className="h-full w-full rounded-md bg-sky-300"
         onClick={(e) => {
           // Stop event from propagating to avoid the calendars click listener to be triggered
           e.stopPropagation();
@@ -59,7 +71,9 @@ const CalendarEventPositioned = (props: CalendarEventPositionedProps) => {
             console.log("clicked event ", vm.id);
           }
         }}
-      />
+      >
+        <CalendarEvent event={vm} />
+      </button>
     </motion.div>
   );
 };

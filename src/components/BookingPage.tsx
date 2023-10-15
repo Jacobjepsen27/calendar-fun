@@ -36,9 +36,10 @@ const BookingPageV2 = () => {
           differenceInMinutes(event.to, event.from),
           cellHeight,
         );
+        const eventWidth = columnWidth;
         const topPx = getTopPixels(event.from, cellHeight);
         const leftPx = getLeftPixels(event.from, columns, columnWidth);
-        return [leftPx, topPx, eventHeight, columnWidth];
+        return [leftPx, topPx, eventHeight, eventWidth];
       };
       const viewModels: CalendarEventViewModel[] = events.map((event) => {
         const [left, top, height, width] = calculatePosition(event);

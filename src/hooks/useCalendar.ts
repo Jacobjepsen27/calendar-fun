@@ -18,6 +18,10 @@ const useCalendar = () => {
   
     const cellHeight = 48; //px
 
+    /**
+     * @param event 
+     * @returns date based on the mouse coordinates in calendar container
+     */
     const getDateFromEvent = <T extends {clientX: number, clientY: number}>(event: T): Date => {
         const [relativeX, relativeY] = getRelativeClickCoordinates(
             event,
