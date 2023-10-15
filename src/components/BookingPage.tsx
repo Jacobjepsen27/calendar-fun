@@ -57,21 +57,28 @@ const BookingPageV2 = () => {
   }, [columns, columnWidth, cellHeight, events]);
 
   const onCalendarClick: React.MouseEventHandler = (event) => {
-    const newDate = getDateFromEvent(event);
+    const newDate = getDateFromEvent(event, 0);
     console.log("newDate: ", newDate);
   };
 
-  const handleOnPan = (event: PointerEvent): [number, number] => {
-    const newDate = getDateFromEvent(event);
+  const handleOnPan = (
+    event: PointerEvent,
+    cursorOffsetY: number,
+  ): [number, number] => {
+    const newDate = getDateFromEvent(event, cursorOffsetY);
     const topPx = getTopPixels(newDate, cellHeight);
     const leftPx = getLeftPixels(newDate, columns, columnWidth);
     return [leftPx, topPx];
   };
 
-  const handleOnPanEnd = (event: PointerEvent, eventId: string) => {
+  const handleOnPanEnd = (
+    event: PointerEvent,
+    eventId: string,
+    cursorOffsetY: number,
+  ) => {
     const calendarEvent = events.find((e) => e.id === eventId);
     if (calendarEvent) {
-      const newDate = getDateFromEvent(event);
+      const newDate = getDateFromEvent(event, cursorOffsetY);
       const updatedCalendarEvent: CalendarEvent = {
         ...calendarEvent,
         from: newDate,

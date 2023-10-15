@@ -1,11 +1,7 @@
-import {
-  differenceInMinutes,
-  setHours,
-  setMinutes,
-  startOfDay,
-} from "date-fns";
+import { differenceInMinutes, setMinutes, startOfDay } from "date-fns";
 import { DateColumn } from "../components/BookingPage";
 import { findDateIndex } from "./dates";
+import PointerOrMouseEvent from "../types/PointerOrMouseEvent";
 
 export const getPixelHeightFromMinutes = (
   minutes: number,
@@ -40,14 +36,13 @@ export const getLeftPixels = (
  * @param container
  * Returns the coordinates relative to the container provided
  */
-export const getRelativeClickCoordinates = <
-  T extends { clientX: number; clientY: number },
->(
-  event: T,
+export const getRelativeClickCoordinates = (
+  event: PointerOrMouseEvent,
+  cursorOffsetY: number,
   container: HTMLElement,
 ): [number, number] => {
   const mouseX = event.clientX;
-  const mouseY = event.clientY;
+  const mouseY = event.clientY - cursorOffsetY;
 
   // The container's position relative to the viewport (scrolling will have an effect on this value)
   const rect = container.getBoundingClientRect();
@@ -83,6 +78,5 @@ export const getDateFromCoordinates = (
   const quarters = Math.floor(mouseY / (cellHeight / 4));
   // Each quarter is 15 min
   const minutes = quarters * 15;
-
   return setMinutes(day.date, minutes);
 };
