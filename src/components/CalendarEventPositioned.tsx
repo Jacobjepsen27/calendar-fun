@@ -24,9 +24,9 @@ const CalendarEventPositioned = (props: CalendarEventPositionedProps) => {
     const offsetX = x - vm.left;
     const offsetY = y - vm.top;
     setOffset([offsetX, offsetY]);
+    //TODO: aply styles when dragging: box-shadow, width, cursor
   };
 
-  // TODO: fix Event click, when dragging. Maybe check inside onClick that isDragging is not enabled
   return (
     <motion.div
       ref={eventRef}
@@ -45,6 +45,7 @@ const CalendarEventPositioned = (props: CalendarEventPositionedProps) => {
         onPanEnd(event, vm.id);
         mouseMovingRef.current = false;
       }}
+      // Check this for fixing animation: https://www.framer.com/motion/use-animation-controls/
       // animate={{ x: offset[0], y: offset[1] }}
       // transition={{ ease: "easeInOut", duration: 0.1 }}
     >
