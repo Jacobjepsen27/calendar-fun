@@ -7,6 +7,7 @@ import {
 } from "../utils/calendar";
 import PointerOrMouseEvent from "../types/PointerOrMouseEvent";
 
+const cellHeight = 48; //px
 const useCalendar = () => {
   const containerRef = useRef<HTMLDivElement | null>(null);
 
@@ -19,8 +20,6 @@ const useCalendar = () => {
     if (containerRef.current == null) return 1;
     return containerRef.current.getBoundingClientRect().width / columns.length;
   }, [columns, containerRef.current]);
-
-  const cellHeight = 48; //px
 
   /**
    * @param event

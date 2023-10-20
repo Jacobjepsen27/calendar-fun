@@ -23,13 +23,15 @@ type CalendarEventPositionedProps = {
 const CalendarEventPositioned = (props: CalendarEventPositionedProps) => {
   const { eventViewModel: vm, onPan, onPanEnd } = props;
   const eventRef = useRef<HTMLDivElement | null>(null);
+  // Used to disable click event when dragging
   const mouseMovingRef = useRef(false);
+  // Offset of where the true y coordiante is (to avoid unintentional snapping)
   const cursorYOffset = useRef(0);
 
-  const [offset, setOffset] = useState<[number, number]>([0, 0]);
+  const [eventOffset, setEventOffset] = useState<[number, number]>([0, 0]);
 
   useLayoutEffect(() => {
-    setOffset([0, 0]);
+    setEventOffset([0, 0]);
   }, [vm.left, vm.top]);
 
   const onMouseDown = (event: React.MouseEvent) => {
@@ -48,7 +50,7 @@ const CalendarEventPositioned = (props: CalendarEventPositionedProps) => {
     const [x, y] = onPan(event, cursorYOffset.current);
     const offsetX = x - vm.left;
     const offsetY = y - vm.top;
-    setOffset([offsetX, offsetY]);
+    setEventOffset([offsetX, offsetY]);
   };
 
   const handleOnPanEnd = (event: PointerEvent) => {
@@ -58,7 +60,6 @@ const CalendarEventPositioned = (props: CalendarEventPositionedProps) => {
     cursorYOffset.current = 0;
   };
 
-  // When dragging add shadows, cursor
   const dynamicButtonStyles: CSSProperties = mouseMovingRef.current
     ? {
         boxShadow: "0 10px 20px rgba(0,0,0,0.19), 0 6px 6px rgba(0,0,0,0.23)",
@@ -66,21 +67,22 @@ const CalendarEventPositioned = (props: CalendarEventPositionedProps) => {
       }
     : {};
 
-  // When dragging increase width
-  const dynamicWidthStyle =
-    mouseMovingRef.current === true ? vm.width : vm.width - 12;
+  const dynamicMotionDivStyles: CSSProperties = {
+    left: vm.left,
+    top: vm.top,
+    height: vm.height,
+    width: mouseMovingRef.current ? vm.width : vm.width - 12,
+    transform: `translate(${eventOffset[0]}px,${eventOffset[1]}px)`,
+  };
+
+  // WidthStyle =
+  //   mouseMovingRef.current === true ? vm.width : vm.width - 12;
 
   return (
     <motion.div
       ref={eventRef}
       className="absolute"
-      style={{
-        left: vm.left,
-        top: vm.top,
-        height: vm.height,
-        width: dynamicWidthStyle,
-        transform: `translate(${offset[0]}px,${offset[1]}px)`,
-      }}
+      style={dynamicMotionDivStyles}
       onMouseDown={onMouseDown}
       onPanStart={handleOnPanStart}
       onPan={handleOnPan}
