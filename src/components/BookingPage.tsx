@@ -29,7 +29,7 @@ const BookingPageV2 = () => {
 
   useEffect(() => {
     if (ref.current != null) {
-      const calculatePosition = (
+      const calculateEventPosition = (
         event: CalendarEvent,
       ): [number, number, number, number] => {
         const eventHeight = getPixelHeightFromMinutes(
@@ -42,7 +42,7 @@ const BookingPageV2 = () => {
         return [leftPx, topPx, eventHeight, eventWidth];
       };
       const viewModels: CalendarEventViewModel[] = events.map((event) => {
-        const [left, top, height, width] = calculatePosition(event);
+        const [left, top, height, width] = calculateEventPosition(event);
 
         return {
           ...event,
@@ -95,10 +95,15 @@ const BookingPageV2 = () => {
       <div className="border border-black">Monday - sunday</div>
 
       <div className="overflow-auto">
-        <div className="relative flex">
+        <div className="relative flex overflow-hidden">
           <CalendarGridUI columns={columns.length} />
+          {/* <div className="absolute inset-0 isolate">placeholder UI</div> */}
           {/* Events UI  */}
-          <div ref={ref} className="absolute inset-0" onClick={onCalendarClick}>
+          <div
+            ref={ref}
+            className="absolute inset-0 isolate"
+            onClick={onCalendarClick}
+          >
             {eventViewModels.map((eventViewModel) => (
               <CalendarEventPositioned
                 key={eventViewModel.id}
