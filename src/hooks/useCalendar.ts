@@ -29,11 +29,13 @@ const useCalendar = () => {
     event: PointerOrMouseEvent,
     cursorOffsetY: number,
   ): Date => {
+    // Coordinates inside container
     const [relativeX, relativeY] = getRelativeClickCoordinates(
       event,
       cursorOffsetY,
       containerRef.current!,
     );
+    // Calculate date based on those coordinates
     const date = getDateFromCoordinates(
       [relativeX, relativeY],
       columnWidth,

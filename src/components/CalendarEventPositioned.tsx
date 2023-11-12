@@ -1,15 +1,7 @@
 import { PanInfo, motion } from "framer-motion";
 import { CalendarEventViewModel } from "../hooks/useEvents";
-import { useRef, useState, useLayoutEffect, CSSProperties } from "react";
+import { useRef, useState, CSSProperties, useLayoutEffect } from "react";
 import CalendarEvent from "./CalendarEvent";
-import PointerOrMouseEvent from "../types/PointerOrMouseEvent";
-
-const getCursorOffsetY = (
-  event: PointerOrMouseEvent,
-  containerRect: DOMRect,
-): number => {
-  return event.clientY - containerRect.top;
-};
 
 type CalendarEventPositionedProps = {
   eventViewModel: CalendarEventViewModel;
@@ -25,32 +17,33 @@ const CalendarEventPositioned = (props: CalendarEventPositionedProps) => {
   const eventRef = useRef<HTMLDivElement | null>(null);
   // Used to disable click event when dragging
   const mouseMovingRef = useRef(false);
-  // Offset of where the true y coordiante is (to avoid unintentional snapping)
+  // Offset of where the true y coordinate is withtin the moving event (to avoid unintentional snapping)
   const cursorYOffset = useRef(0);
 
-  const [eventOffset, setEventOffset] = useState<[number, number]>([0, 0]);
+  const [transformOffset, setTransformOffset] = useState<[number, number]>([
+    0, 0,
+  ]);
 
   useLayoutEffect(() => {
-    setEventOffset([0, 0]);
+    setTransformOffset([0, 0]);
   }, [vm.left, vm.top]);
 
-  const onMouseDown = (event: React.MouseEvent) => {
-    const cursorOffsetY = getCursorOffsetY(
-      event as unknown as PointerEvent,
-      eventRef.current!.getBoundingClientRect(),
-    );
+  const onPanSessionStart = (event: PointerEvent, info: PanInfo) => {
+    const cursorOffsetY =
+      info.point.y -
+      (eventRef.current?.getBoundingClientRect().top ?? info.point.y);
     cursorYOffset.current = cursorOffsetY;
   };
 
-  const handleOnPanStart = (event: PointerEvent) => {
+  const handleOnPanStart = (_: PointerEvent) => {
     mouseMovingRef.current = true;
   };
 
-  const handleOnPan = (event: PointerEvent, info: PanInfo) => {
+  const handleOnPan = (event: PointerEvent, _: PanInfo) => {
     const [x, y] = onPan(event, cursorYOffset.current);
     const offsetX = x - vm.left;
     const offsetY = y - vm.top;
-    setEventOffset([offsetX, offsetY]);
+    setTransformOffset([offsetX, offsetY]);
   };
 
   const handleOnPanEnd = (event: PointerEvent) => {
@@ -72,18 +65,16 @@ const CalendarEventPositioned = (props: CalendarEventPositionedProps) => {
     top: vm.top,
     height: vm.height,
     width: mouseMovingRef.current ? vm.width : vm.width - 12,
-    transform: `translate(${eventOffset[0]}px,${eventOffset[1]}px)`,
+    transform: `translate(${transformOffset[0]}px,${transformOffset[1]}px)`,
+    touchAction: "none",
   };
-
-  // WidthStyle =
-  //   mouseMovingRef.current === true ? vm.width : vm.width - 12;
 
   return (
     <motion.div
       ref={eventRef}
       className="absolute"
       style={dynamicMotionDivStyles}
-      onMouseDown={onMouseDown}
+      onPanSessionStart={onPanSessionStart}
       onPanStart={handleOnPanStart}
       onPan={handleOnPan}
       onPanEnd={handleOnPanEnd}
@@ -105,6 +96,13 @@ const CalendarEventPositioned = (props: CalendarEventPositionedProps) => {
       >
         <CalendarEvent event={vm} />
       </button>
+      <button
+        className="absolute bottom-0 left-0 right-0 h-[10px] w-full cursor-row-resize "
+        onClick={(e) => {
+          e.stopPropagation();
+          console.log("resizing event happened");
+        }}
+      ></button>
     </motion.div>
   );
 };
