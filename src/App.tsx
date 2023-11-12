@@ -2,7 +2,7 @@ import BookingPage from "./components/BookingPage";
 
 function App() {
   return (
-    <div className="flex h-full w-full items-center justify-center bg-slate-500">
+    <div className="h-full w-full bg-slate-500">
       <BookingPage />
     </div>
   );

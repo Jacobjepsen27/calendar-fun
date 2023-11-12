@@ -1,122 +1,20 @@
-import { add, differenceInMinutes } from "date-fns";
-import { useEffect, useState } from "react";
-import {
-  getLeftPixels,
-  getPixelHeightFromMinutes,
-  getTopPixels,
-} from "../utils/calendar";
-import useCalendar from "../hooks/useCalendar";
-import useEvents, {
-  CalendarEvent,
-  CalendarEventViewModel,
-} from "../hooks/useEvents";
-import CalendarEventPositioned from "./CalendarEventPositioned";
-import CalendarGridUI from "./CalendarGridUI";
+import useEvents from "../hooks/useEvents";
+import Calendar from "./Calendar";
 
 export type DateColumn = {
   index: number;
   date: Date;
 };
 
-const BookingPageV2 = () => {
-  const { ref, cellHeight, columnWidth, columns, getDateFromEvent } =
-    useCalendar();
+const BookingPage = () => {
   const { events, updateEvent } = useEvents();
-
-  const [eventViewModels, setEventViewModels] = useState<
-    CalendarEventViewModel[]
-  >([]);
-
-  useEffect(() => {
-    if (ref.current != null) {
-      const calculateEventPosition = (
-        event: CalendarEvent,
-      ): [number, number, number, number] => {
-        const eventHeight = getPixelHeightFromMinutes(
-          differenceInMinutes(event.to, event.from),
-          cellHeight,
-        );
-        const eventWidth = columnWidth;
-        const topPx = getTopPixels(event.from, cellHeight);
-        const leftPx = getLeftPixels(event.from, columns, columnWidth);
-        return [leftPx, topPx, eventHeight, eventWidth];
-      };
-      const viewModels: CalendarEventViewModel[] = events.map((event) => {
-        const [left, top, height, width] = calculateEventPosition(event);
-
-        return {
-          ...event,
-          left,
-          top,
-          width,
-          height,
-        };
-      });
-      setEventViewModels(viewModels);
-    }
-  }, [columns, columnWidth, cellHeight, events]);
-
-  const onCalendarClick: React.MouseEventHandler = (event) => {
-    const newDate = getDateFromEvent(event, 0);
-    console.log("newDate: ", newDate);
-  };
-
-  const handleOnPan = (
-    event: PointerEvent,
-    cursorOffsetY: number,
-  ): [number, number] => {
-    const newDate = getDateFromEvent(event, cursorOffsetY);
-    const topPx = getTopPixels(newDate, cellHeight);
-    const leftPx = getLeftPixels(newDate, columns, columnWidth);
-    return [leftPx, topPx];
-  };
-
-  const handleOnPanEnd = (
-    event: PointerEvent,
-    eventId: string,
-    cursorOffsetY: number,
-  ) => {
-    const calendarEvent = events.find((e) => e.id === eventId);
-    if (calendarEvent) {
-      const newDate = getDateFromEvent(event, cursorOffsetY);
-      const updatedCalendarEvent: CalendarEvent = {
-        ...calendarEvent,
-        from: newDate,
-        to: add(newDate, {
-          minutes: differenceInMinutes(calendarEvent.to, calendarEvent.from),
-        }),
-      };
-      updateEvent(updatedCalendarEvent);
-    }
-  };
-
   return (
-    <div className="borde-white flex max-h-[90%] w-full max-w-[90%] flex-col border ">
-      <div className="border border-black">Monday - sunday</div>
-
-      <div className="overflow-auto">
-        <div className="relative flex overflow-hidden">
-          <CalendarGridUI columns={columns.length} />
-          {/* <div className="absolute inset-0 isolate">placeholder UI</div> */}
-          {/* Events UI  */}
-          <div
-            ref={ref}
-            className="absolute inset-0 isolate"
-            onClick={onCalendarClick}
-          >
-            {eventViewModels.map((eventViewModel) => (
-              <CalendarEventPositioned
-                key={eventViewModel.id}
-                eventViewModel={eventViewModel}
-                onPan={handleOnPan}
-                onPanEnd={handleOnPanEnd}
-              />
-            ))}
-          </div>
-        </div>
+    <div className="flex h-[100%] items-center justify-center">
+      <div className="h-[90%] max-h-[900px] w-[90%]">
+        <Calendar events={events} onUpdateEvent={updateEvent} />
       </div>
     </div>
   );
 };
 
-export default BookingPageV2;
+export default BookingPage;

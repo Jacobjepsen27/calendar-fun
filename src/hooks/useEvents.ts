@@ -1,7 +1,7 @@
 import { set } from "date-fns";
 import { useState } from "react";
 import { v4 as uuid } from "uuid";
-import { getCurrentWeeks } from "../utils/dates";
+import { getWeekDatesFromDate } from "../utils/dates";
 
 export type CalendarEventViewModel = CalendarEvent & {
   left: number;
@@ -32,7 +32,7 @@ export default useEvents;
 
 const generateEventData = (): CalendarEvent[] => {
   const today = new Date();
-  const dates = getCurrentWeeks(today);
+  const dates = getWeekDatesFromDate(today);
 
   const monday = dates[0];
   const tuesday = dates[1];

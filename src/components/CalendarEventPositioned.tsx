@@ -1,19 +1,21 @@
 import { PanInfo, motion } from "framer-motion";
 import { CalendarEventViewModel } from "../hooks/useEvents";
-import { useRef, useState, CSSProperties, useLayoutEffect } from "react";
-import CalendarEvent from "./CalendarEvent";
+import {
+  useRef,
+  useState,
+  CSSProperties,
+  useLayoutEffect,
+  PropsWithChildren,
+} from "react";
+import CalendarEvent from "./CalendarEventUI";
+import { useCalendarContext } from "../context/CalendarProvider";
 
 type CalendarEventPositionedProps = {
   eventViewModel: CalendarEventViewModel;
-  onPan: (event: PointerEvent, cursorOffsetY: number) => [number, number];
-  onPanEnd: (
-    event: PointerEvent,
-    eventId: string,
-    cursorOffsetY: number,
-  ) => void;
 };
 const CalendarEventPositioned = (props: CalendarEventPositionedProps) => {
-  const { eventViewModel: vm, onPan, onPanEnd } = props;
+  const { eventViewModel: vm } = props;
+  const { onPan, onPanEnd } = useCalendarContext();
   const eventRef = useRef<HTMLDivElement | null>(null);
   // Used to disable click event when dragging
   const mouseMovingRef = useRef(false);
@@ -82,20 +84,36 @@ const CalendarEventPositioned = (props: CalendarEventPositionedProps) => {
       // animate={{ x: offset[0], y: offset[1] }}
       // transition={{ ease: "easeInOut", duration: 0.1 }}
     >
-      <button
-        style={dynamicButtonStyles}
-        className="h-full w-full rounded-md bg-sky-300"
-        onClick={(e) => {
-          // Stop event from propagating to avoid the calendars click listener to be triggered
-          e.stopPropagation();
-          // Don't trigger this click event in case we are dragging
-          if (mouseMovingRef.current === false) {
-            console.log("clicked event ", vm.id);
-          }
-        }}
-      >
-        <CalendarEvent event={vm} />
-      </button>
+      <CalendarEventResize>
+        <button
+          style={dynamicButtonStyles}
+          className="h-full w-full rounded-md bg-sky-300"
+          onClick={(e) => {
+            // Stop event from propagating to avoid the calendars click listener to be triggered
+            e.stopPropagation();
+            // Don't trigger this click event in case we are dragging
+            if (mouseMovingRef.current === false) {
+              console.log("clicked event ", vm.id);
+            }
+          }}
+        >
+          <CalendarEvent event={vm} />
+        </button>
+      </CalendarEventResize>
+    </motion.div>
+  );
+};
+
+export default CalendarEventPositioned;
+
+type CalendarEventResizeProps = PropsWithChildren;
+const CalendarEventResize = ({ children }: CalendarEventResizeProps) => {
+  // onResizeStart  ->
+  // onResize       ->
+  // onResizeEnd    ->
+  return (
+    <>
+      {children}
       <button
         className="absolute bottom-0 left-0 right-0 h-[10px] w-full cursor-row-resize "
         onClick={(e) => {
@@ -103,8 +121,6 @@ const CalendarEventPositioned = (props: CalendarEventPositionedProps) => {
           console.log("resizing event happened");
         }}
       ></button>
-    </motion.div>
+    </>
   );
 };
-
-export default CalendarEventPositioned;

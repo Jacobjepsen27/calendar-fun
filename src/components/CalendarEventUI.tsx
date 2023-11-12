@@ -2,10 +2,10 @@ import { MouseEventHandler } from "react";
 import { CalendarEventViewModel } from "../hooks/useEvents";
 import { format } from "date-fns";
 
-type CalendarEventProps = {
+type CalendarEventUIProps = {
   event: CalendarEventViewModel;
 };
-const CalendarEvent = ({ event }: CalendarEventProps) => {
+const CalendarEventUI = ({ event }: CalendarEventUIProps) => {
   // Ideally this should only be responsible for showing data and acting as a button
   return (
     <div className="h-full w-full p-2">
@@ -19,4 +19,4 @@ const CalendarEvent = ({ event }: CalendarEventProps) => {
   );
 };
 
-export default CalendarEvent;
+export default CalendarEventUI;

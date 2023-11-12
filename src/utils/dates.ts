@@ -4,7 +4,7 @@ import { eachDayOfInterval, endOfWeek, isSameDay, startOfWeek } from "date-fns";
  * @param date
  * @returns array of dates (the week) based on the date parameter
  */
-export const getCurrentWeeks = (date: Date) => {
+export const getWeekDatesFromDate = (date: Date) => {
   const start = startOfWeek(date, { weekStartsOn: 1 }); // 1 for Monday as the start of the week
   const end = endOfWeek(date, { weekStartsOn: 1 });
 
