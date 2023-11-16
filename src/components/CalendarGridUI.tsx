@@ -1,17 +1,16 @@
-import { useCalendarContext } from "../context/CalendarProvider";
-
 const arrayFromNumber = (count: number) => {
   let arr = [...Array(count)].map((_, i) => i);
   return arr;
 };
-
-const CalendarGridUI = () => {
-  const { columns } = useCalendarContext();
-  const rows = 24;
+type CalendarGridUIProps = {
+  columns: number;
+  rows: number;
+};
+const CalendarGridUI = ({ columns, rows }: CalendarGridUIProps) => {
   return (
     <div className="flex w-full">
       {/* columns */}
-      {arrayFromNumber(columns.length).map((col) => (
+      {arrayFromNumber(columns).map((col) => (
         <div key={col} className="flex flex-grow flex-col border-solid">
           {/* Cells */}
           {arrayFromNumber(rows).map((row) => (

@@ -8,14 +8,21 @@ import {
   PropsWithChildren,
 } from "react";
 import CalendarEvent from "./CalendarEventUI";
-import { useCalendarContext } from "../context/CalendarProvider";
 
 type CalendarEventPositionedProps = {
-  eventViewModel: CalendarEventViewModel;
+  viewModel: CalendarEventViewModel;
+  onPan: (event: PointerEvent, cursorOffsetY: number) => [number, number];
+  onPanEnd: (
+    event: PointerEvent,
+    eventId: string,
+    cursorOffsetY: number,
+  ) => void;
 };
-const CalendarEventPositioned = (props: CalendarEventPositionedProps) => {
-  const { eventViewModel: vm } = props;
-  const { onPan, onPanEnd } = useCalendarContext();
+const CalendarEventPositioned = ({
+  viewModel,
+  onPan,
+  onPanEnd,
+}: CalendarEventPositionedProps) => {
   const eventRef = useRef<HTMLDivElement | null>(null);
   // Used to disable click event when dragging
   const mouseMovingRef = useRef(false);
@@ -28,7 +35,7 @@ const CalendarEventPositioned = (props: CalendarEventPositionedProps) => {
 
   useLayoutEffect(() => {
     setTransformOffset([0, 0]);
-  }, [vm.left, vm.top]);
+  }, [viewModel.left, viewModel.top]);
 
   const onPanSessionStart = (event: PointerEvent, info: PanInfo) => {
     const cursorOffsetY =
@@ -43,14 +50,14 @@ const CalendarEventPositioned = (props: CalendarEventPositionedProps) => {
 
   const handleOnPan = (event: PointerEvent, _: PanInfo) => {
     const [x, y] = onPan(event, cursorYOffset.current);
-    const offsetX = x - vm.left;
-    const offsetY = y - vm.top;
+    const offsetX = x - viewModel.left;
+    const offsetY = y - viewModel.top;
     setTransformOffset([offsetX, offsetY]);
   };
 
   const handleOnPanEnd = (event: PointerEvent) => {
     event.stopPropagation();
-    onPanEnd(event, vm.id, cursorYOffset.current);
+    onPanEnd(event, viewModel.id, cursorYOffset.current);
     mouseMovingRef.current = false;
     cursorYOffset.current = 0;
   };
@@ -63,10 +70,10 @@ const CalendarEventPositioned = (props: CalendarEventPositionedProps) => {
     : {};
 
   const dynamicMotionDivStyles: CSSProperties = {
-    left: vm.left,
-    top: vm.top,
-    height: vm.height,
-    width: mouseMovingRef.current ? vm.width : vm.width - 12,
+    left: viewModel.left,
+    top: viewModel.top,
+    height: viewModel.height,
+    width: mouseMovingRef.current ? viewModel.width : viewModel.width - 12,
     transform: `translate(${transformOffset[0]}px,${transformOffset[1]}px)`,
     touchAction: "none",
   };
@@ -93,11 +100,11 @@ const CalendarEventPositioned = (props: CalendarEventPositionedProps) => {
             e.stopPropagation();
             // Don't trigger this click event in case we are dragging
             if (mouseMovingRef.current === false) {
-              console.log("clicked event ", vm.id);
+              console.log("clicked event ", viewModel.id);
             }
           }}
         >
-          <CalendarEvent event={vm} />
+          <CalendarEvent event={viewModel} />
         </button>
       </CalendarEventResize>
     </motion.div>
@@ -111,16 +118,26 @@ const CalendarEventResize = ({ children }: CalendarEventResizeProps) => {
   // onResizeStart  ->
   // onResize       ->
   // onResizeEnd    ->
+  const handleResize = (event: PointerEvent, info: PanInfo) => {
+    // pseudo code
+    // just call callback onResize(info.offset.y) which update height of viewmodel
+  };
+  const handleResizeEnd = (event: PointerEvent, info: PanInfo) => {
+    // event.stopPropagation();
+  };
+
   return (
     <>
       {children}
-      <button
-        className="absolute bottom-0 left-0 right-0 h-[10px] w-full cursor-row-resize "
+      <motion.button
+        className="absolute bottom-0 left-0 right-0 h-[10px] w-full cursor-ns-resize bg-red-600"
+        onPointerDownCapture={(e) => e.stopPropagation()}
+        onPan={handleResize}
+        onPanEnd={handleResizeEnd}
         onClick={(e) => {
           e.stopPropagation();
-          console.log("resizing event happened");
         }}
-      ></button>
+      ></motion.button>
     </>
   );
 };

@@ -1,4 +1,3 @@
-import { MouseEventHandler } from "react";
 import { CalendarEventViewModel } from "../hooks/useEvents";
 import { format } from "date-fns";
 
