@@ -50,26 +50,55 @@ const useInteractiveHandlers = (
     event: PointerEvent,
     eventId: string,
     cursorOffsetY: number,
-  ) => {
+  ): CalendarEventViewModel => {
     const calendarEvent = viewModels.find((e) => e.id === eventId);
 
     if (!calendarEvent)
       throw Error(`Could not find calendarEvent with id: ${eventId}.`);
 
     const newDate = getDateFromEvent(event, cursorOffsetY);
-    const updatedCalendarEvent: CalendarEventViewModel = {
+    return {
       ...calendarEvent,
       from: newDate,
       to: add(newDate, {
         minutes: differenceInMinutes(calendarEvent.to, calendarEvent.from),
       }),
     };
-    return updatedCalendarEvent;
+  };
+
+  const handleResize = (eventId: string, offsetY: number) => {
+    // TODO: handle min height of event (48px or snapping height)
+    // TODO: handle height (or time) going beyond border - should not be possible
+    const resizeHeight = Math.floor(offsetY / cellHeight);
+    return resizeHeight * 48;
+  };
+
+  const handleResizeEnd = (
+    eventId: string,
+    resizeHeight: number,
+  ): CalendarEventViewModel => {
+    const calendarEvent = viewModels.find((vm) => vm.id === eventId);
+
+    if (!calendarEvent)
+      throw Error(`Could not find calendarEvent with id: ${eventId}.`);
+
+    const minutesAdded =
+      differenceInMinutes(calendarEvent.to, calendarEvent.from) +
+      (resizeHeight / cellHeight) * 60;
+
+    return {
+      ...calendarEvent,
+      to: add(calendarEvent.from, {
+        minutes: minutesAdded,
+      }),
+    };
   };
 
   return {
     onPan: handleOnPan,
     onPanEnd: handleOnPanEnd,
+    onResize: handleResize,
+    onResizeEnd: handleResizeEnd,
   };
 };
 

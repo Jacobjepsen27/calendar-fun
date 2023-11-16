@@ -12,7 +12,7 @@ type CalendarProps = {
 const Calendar = ({ events, onUpdateEvent }: CalendarProps) => {
   const calendarInternals = useCalendarInternals();
   const { viewModels } = useViewModels(calendarInternals, events);
-  const { onPan, onPanEnd } = useInteractiveHandlers(
+  const { onPan, onPanEnd, onResize, onResizeEnd } = useInteractiveHandlers(
     calendarInternals,
     viewModels,
   );
@@ -30,6 +30,17 @@ const Calendar = ({ events, onUpdateEvent }: CalendarProps) => {
       to: updatedViewModel.to,
     });
   };
+
+  const handleResizeEnd = (eventId: string, resizeHeight: number) => {
+    const updatedViewModel = onResizeEnd(eventId, resizeHeight);
+    onUpdateEvent({
+      id: updatedViewModel.id,
+      name: updatedViewModel.name,
+      from: updatedViewModel.from,
+      to: updatedViewModel.to,
+    });
+  };
+
   return (
     <div className="flex h-full w-full flex-col border ">
       <div className="border border-black">Monday - sunday</div>
@@ -49,6 +60,8 @@ const Calendar = ({ events, onUpdateEvent }: CalendarProps) => {
                 viewModel={viewModel}
                 onPan={onPan}
                 onPanEnd={handlePanEnd}
+                onResize={onResize}
+                onResizeEnd={handleResizeEnd}
               />
             ))}
           </div>

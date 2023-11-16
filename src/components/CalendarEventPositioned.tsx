@@ -5,7 +5,7 @@ import {
   useState,
   CSSProperties,
   useLayoutEffect,
-  PropsWithChildren,
+  useEffect,
 } from "react";
 import CalendarEvent from "./CalendarEventUI";
 
@@ -17,11 +17,15 @@ type CalendarEventPositionedProps = {
     eventId: string,
     cursorOffsetY: number,
   ) => void;
+  onResize: (eventId: string, offsetY: number) => number;
+  onResizeEnd: (eventId: string, resizeHeight: number) => void;
 };
 const CalendarEventPositioned = ({
   viewModel,
   onPan,
   onPanEnd,
+  onResize,
+  onResizeEnd,
 }: CalendarEventPositionedProps) => {
   const eventRef = useRef<HTMLDivElement | null>(null);
   // Used to disable click event when dragging
@@ -32,12 +36,17 @@ const CalendarEventPositioned = ({
   const [transformOffset, setTransformOffset] = useState<[number, number]>([
     0, 0,
   ]);
+  const [resizeHeight, setResizeHeight] = useState(0);
 
   useLayoutEffect(() => {
     setTransformOffset([0, 0]);
   }, [viewModel.left, viewModel.top]);
 
-  const onPanSessionStart = (event: PointerEvent, info: PanInfo) => {
+  useLayoutEffect(() => {
+    setResizeHeight(0);
+  }, [viewModel.height]);
+
+  const handlePanSessionStart = (event: PointerEvent, info: PanInfo) => {
     const cursorOffsetY =
       info.point.y -
       (eventRef.current?.getBoundingClientRect().top ?? info.point.y);
@@ -62,6 +71,16 @@ const CalendarEventPositioned = ({
     cursorYOffset.current = 0;
   };
 
+  const handleResize = (event: PointerEvent, info: PanInfo) => {
+    const resizeHeight = onResize(viewModel.id, info.offset.y);
+    setResizeHeight(resizeHeight);
+  };
+
+  const handleResizeEnd = (event: PointerEvent, info: PanInfo) => {
+    event.stopPropagation();
+    onResizeEnd(viewModel.id, resizeHeight);
+  };
+
   const dynamicButtonStyles: CSSProperties = mouseMovingRef.current
     ? {
         boxShadow: "0 10px 20px rgba(0,0,0,0.19), 0 6px 6px rgba(0,0,0,0.23)",
@@ -72,29 +91,31 @@ const CalendarEventPositioned = ({
   const dynamicMotionDivStyles: CSSProperties = {
     left: viewModel.left,
     top: viewModel.top,
-    height: viewModel.height,
+    height: viewModel.height + resizeHeight,
     width: mouseMovingRef.current ? viewModel.width : viewModel.width - 12,
     transform: `translate(${transformOffset[0]}px,${transformOffset[1]}px)`,
     touchAction: "none",
   };
 
   return (
-    <motion.div
-      ref={eventRef}
-      className="absolute"
+    <div
+      className="absolute overflow-hidden rounded-md"
       style={dynamicMotionDivStyles}
-      onPanSessionStart={onPanSessionStart}
-      onPanStart={handleOnPanStart}
-      onPan={handleOnPan}
-      onPanEnd={handleOnPanEnd}
-      // Check this for fixing animation: https://www.framer.com/motion/use-animation-controls/
-      // animate={{ x: offset[0], y: offset[1] }}
-      // transition={{ ease: "easeInOut", duration: 0.1 }}
     >
-      <CalendarEventResize>
+      <motion.div
+        ref={eventRef}
+        className="h-full"
+        onPanSessionStart={handlePanSessionStart}
+        onPanStart={handleOnPanStart}
+        onPan={handleOnPan}
+        onPanEnd={handleOnPanEnd}
+        // Check this for fixing animation: https://www.framer.com/motion/use-animation-controls/
+        // animate={{ x: offset[0], y: offset[1] }}
+        // transition={{ ease: "easeInOut", duration: 0.1 }}
+      >
         <button
           style={dynamicButtonStyles}
-          className="h-full w-full rounded-md bg-sky-300"
+          className="h-full w-full bg-sky-300"
           onClick={(e) => {
             // Stop event from propagating to avoid the calendars click listener to be triggered
             e.stopPropagation();
@@ -106,38 +127,18 @@ const CalendarEventPositioned = ({
         >
           <CalendarEvent event={viewModel} />
         </button>
-      </CalendarEventResize>
-    </motion.div>
-  );
-};
-
-export default CalendarEventPositioned;
-
-type CalendarEventResizeProps = PropsWithChildren;
-const CalendarEventResize = ({ children }: CalendarEventResizeProps) => {
-  // onResizeStart  ->
-  // onResize       ->
-  // onResizeEnd    ->
-  const handleResize = (event: PointerEvent, info: PanInfo) => {
-    // pseudo code
-    // just call callback onResize(info.offset.y) which update height of viewmodel
-  };
-  const handleResizeEnd = (event: PointerEvent, info: PanInfo) => {
-    // event.stopPropagation();
-  };
-
-  return (
-    <>
-      {children}
+      </motion.div>
       <motion.button
-        className="absolute bottom-0 left-0 right-0 h-[10px] w-full cursor-ns-resize bg-red-600"
-        onPointerDownCapture={(e) => e.stopPropagation()}
+        className="absolute bottom-0 left-0 right-0 h-[10px] w-full cursor-ns-resize"
         onPan={handleResize}
         onPanEnd={handleResizeEnd}
         onClick={(e) => {
           e.stopPropagation();
+          console.log("resize clicked");
         }}
       ></motion.button>
-    </>
+    </div>
   );
 };
+
+export default CalendarEventPositioned;

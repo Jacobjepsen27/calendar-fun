@@ -75,8 +75,13 @@ export const getDateFromCoordinates = (
   const dayIndex = Math.floor(mouseX / columnWidth);
   const day = columns[dayIndex];
 
+  const hours = Math.floor(mouseY / cellHeight);
+  const minutes = hours * 60;
+  return setMinutes(day.date, minutes);
+  /*
   const quarters = Math.floor(mouseY / (cellHeight / 4));
   // Each quarter is 15 min
   const minutes = quarters * 15;
   return setMinutes(day.date, minutes);
+  */
 };
