@@ -12,17 +12,15 @@ type CalendarProps = {
 const Calendar = ({ events, onUpdateEvent }: CalendarProps) => {
   const calendarInternals = useCalendarInternals();
   const { viewModels } = useViewModels(calendarInternals, events);
-  const { onPan, onPanEnd, onResize, onResizeEnd } = useInteractiveHandlers(
-    calendarInternals,
-    viewModels,
-  );
+  const { onPan, onPanEnd, onResize, onResizeEnd, onCalendarClick } =
+    useInteractiveHandlers(calendarInternals, viewModels);
 
   const handlePanEnd = (
-    event: PointerEvent,
     eventId: string,
+    event: PointerEvent,
     cursorOffsetY: number,
   ): void => {
-    const updatedViewModel = onPanEnd(event, eventId, cursorOffsetY);
+    const updatedViewModel = onPanEnd(eventId, event, cursorOffsetY);
     onUpdateEvent({
       id: updatedViewModel.id,
       name: updatedViewModel.name,
@@ -31,8 +29,8 @@ const Calendar = ({ events, onUpdateEvent }: CalendarProps) => {
     });
   };
 
-  const handleResizeEnd = (eventId: string, resizeHeight: number) => {
-    const updatedViewModel = onResizeEnd(eventId, resizeHeight);
+  const handleResizeEnd = (eventId: string, offsetY: number) => {
+    const updatedViewModel = onResizeEnd(eventId, offsetY);
     onUpdateEvent({
       id: updatedViewModel.id,
       name: updatedViewModel.name,
@@ -52,7 +50,7 @@ const Calendar = ({ events, onUpdateEvent }: CalendarProps) => {
           <div
             ref={calendarInternals.calendarRef}
             className="absolute inset-0 isolate"
-            // onClick={onCalendarClick}
+            onClick={(e) => console.log(onCalendarClick(e))}
           >
             {viewModels.map((viewModel) => (
               <CalendarEventPositioned

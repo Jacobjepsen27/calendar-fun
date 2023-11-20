@@ -2,12 +2,18 @@ import { useRef, useState, useMemo, MutableRefObject } from "react";
 import { DateColumn } from "../components/BookingPage";
 
 import { getWeekDatesFromDate } from "../utils/dates";
+import PointerOrMouseEvent from "../types/PointerOrMouseEvent";
+import {
+  getRelativeClickCoordinates,
+  getDateFromCoordinates,
+} from "../utils/calendar";
 
 export type CalendarInternals = {
   calendarRef: MutableRefObject<HTMLDivElement | null>;
   columns: DateColumn[];
   columnWidth: number;
   cellHeight: number;
+  getDateFromEvent: (event: PointerOrMouseEvent, cursorOffsetY: number) => Date;
 };
 
 const useCalendarInternals = (): CalendarInternals => {
@@ -25,11 +31,33 @@ const useCalendarInternals = (): CalendarInternals => {
     return calendarRef.current.getBoundingClientRect().width / columns.length;
   }, [columns, calendarRef.current]);
 
+  // get date based on the mouse coordinates in calendar container
+  const getDateFromEvent = (
+    event: PointerOrMouseEvent,
+    cursorOffsetY: number,
+  ): Date => {
+    // Coordinates inside container
+    const [relativeX, relativeY] = getRelativeClickCoordinates(
+      event,
+      cursorOffsetY,
+      calendarRef.current!,
+    );
+    // Calculate date based on those coordinates
+    const date = getDateFromCoordinates(
+      [relativeX, relativeY],
+      columnWidth,
+      columns,
+      cellHeight,
+    );
+    return date;
+  };
+
   return {
     calendarRef,
     columns,
     columnWidth,
     cellHeight,
+    getDateFromEvent,
   };
 };
 

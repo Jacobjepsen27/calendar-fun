@@ -11,14 +11,18 @@ import CalendarEvent from "./CalendarEventUI";
 
 type CalendarEventPositionedProps = {
   viewModel: CalendarEventViewModel;
-  onPan: (event: PointerEvent, cursorOffsetY: number) => [number, number];
-  onPanEnd: (
-    event: PointerEvent,
+  onPan: (
     eventId: string,
+    event: PointerEvent,
+    cursorOffsetY: number,
+  ) => [number, number];
+  onPanEnd: (
+    eventId: string,
+    event: PointerEvent,
     cursorOffsetY: number,
   ) => void;
   onResize: (eventId: string, offsetY: number) => number;
-  onResizeEnd: (eventId: string, resizeHeight: number) => void;
+  onResizeEnd: (eventId: string, offsetY: number) => void;
 };
 const CalendarEventPositioned = ({
   viewModel,
@@ -46,7 +50,7 @@ const CalendarEventPositioned = ({
     setResizeHeight(0);
   }, [viewModel.height]);
 
-  const handlePanSessionStart = (event: PointerEvent, info: PanInfo) => {
+  const handlePanSessionStart = (_: PointerEvent, info: PanInfo) => {
     const cursorOffsetY =
       info.point.y -
       (eventRef.current?.getBoundingClientRect().top ?? info.point.y);
@@ -58,7 +62,7 @@ const CalendarEventPositioned = ({
   };
 
   const handleOnPan = (event: PointerEvent, _: PanInfo) => {
-    const [x, y] = onPan(event, cursorYOffset.current);
+    const [x, y] = onPan(viewModel.id, event, cursorYOffset.current);
     const offsetX = x - viewModel.left;
     const offsetY = y - viewModel.top;
     setTransformOffset([offsetX, offsetY]);
@@ -66,7 +70,7 @@ const CalendarEventPositioned = ({
 
   const handleOnPanEnd = (event: PointerEvent) => {
     event.stopPropagation();
-    onPanEnd(event, viewModel.id, cursorYOffset.current);
+    onPanEnd(viewModel.id, event, cursorYOffset.current);
     mouseMovingRef.current = false;
     cursorYOffset.current = 0;
   };
@@ -78,7 +82,7 @@ const CalendarEventPositioned = ({
 
   const handleResizeEnd = (event: PointerEvent, info: PanInfo) => {
     event.stopPropagation();
-    onResizeEnd(viewModel.id, resizeHeight);
+    onResizeEnd(viewModel.id, info.offset.y);
   };
 
   const dynamicButtonStyles: CSSProperties = mouseMovingRef.current
@@ -109,9 +113,6 @@ const CalendarEventPositioned = ({
         onPanStart={handleOnPanStart}
         onPan={handleOnPan}
         onPanEnd={handleOnPanEnd}
-        // Check this for fixing animation: https://www.framer.com/motion/use-animation-controls/
-        // animate={{ x: offset[0], y: offset[1] }}
-        // transition={{ ease: "easeInOut", duration: 0.1 }}
       >
         <button
           style={dynamicButtonStyles}
@@ -120,7 +121,7 @@ const CalendarEventPositioned = ({
             // Stop event from propagating to avoid the calendars click listener to be triggered
             e.stopPropagation();
             // Don't trigger this click event in case we are dragging
-            if (mouseMovingRef.current === false) {
+            if (!mouseMovingRef.current) {
               console.log("clicked event ", viewModel.id);
             }
           }}

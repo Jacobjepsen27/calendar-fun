@@ -73,22 +73,22 @@ export const getRelativeClickCoordinates = (
  * @returns Date with hours set to now
  */
 export const getDateFromCoordinates = (
-  [mouseX, mouseY]: [number, number],
+  [cursorX, cursorY]: [number, number],
   columnWidth: number,
   columns: DateColumn[],
   cellHeight: number,
 ): Date => {
   // Using math floor to get integer, which can be used to index column array
-  const dayIndex = Math.floor(mouseX / columnWidth);
+  const dayIndex = Math.floor(cursorX / columnWidth);
   const day = columns[dayIndex];
 
-  const hours = Math.floor(mouseY / cellHeight);
+  let hours = Math.floor(cursorY / cellHeight);
+
+  // 24 should ideally be a timerange set by the consumer of the calendar
+  if (hours === 24) {
+    hours -= 1;
+  }
+
   const minutes = hours * 60;
   return setMinutes(day.date, minutes);
-  /*
-  const quarters = Math.floor(mouseY / (cellHeight / 4));
-  // Each quarter is 15 min
-  const minutes = quarters * 15;
-  return setMinutes(day.date, minutes);
-  */
 };

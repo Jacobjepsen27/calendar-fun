@@ -5,7 +5,6 @@ type CalendarEventUIProps = {
   event: CalendarEventViewModel;
 };
 const CalendarEventUI = ({ event }: CalendarEventUIProps) => {
-  // Ideally this should only be responsible for showing data and acting as a button
   return (
     <div className="h-full w-full p-2">
       <div className="flex h-full flex-col items-start justify-start">
