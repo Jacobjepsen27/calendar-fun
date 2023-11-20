@@ -1,10 +1,20 @@
-import { add, differenceInMinutes } from "date-fns";
+import {
+  add,
+  addDays,
+  addMinutes,
+  differenceInMinutes,
+  endOfDay,
+  isAfter,
+  nextDay,
+  startOfDay,
+} from "date-fns";
 import PointerOrMouseEvent from "../types/PointerOrMouseEvent";
 import {
   getRelativeClickCoordinates,
   getDateFromCoordinates,
   getTopPixels,
   getLeftPixels,
+  getMinutesFromPixelHeight,
 } from "../utils/calendar";
 import { CalendarInternals } from "./useCalendarInternals";
 import { CalendarEventViewModel } from "./useEvents";
@@ -51,10 +61,7 @@ const useInteractiveHandlers = (
     eventId: string,
     cursorOffsetY: number,
   ): CalendarEventViewModel => {
-    const calendarEvent = viewModels.find((e) => e.id === eventId);
-
-    if (!calendarEvent)
-      throw Error(`Could not find calendarEvent with id: ${eventId}.`);
+    const calendarEvent = findViewModelOrThrow(eventId, viewModels);
 
     const newDate = getDateFromEvent(event, cursorOffsetY);
     return {
@@ -66,25 +73,48 @@ const useInteractiveHandlers = (
     };
   };
 
-  const handleResize = (eventId: string, offsetY: number) => {
-    // TODO: handle min height of event (48px or snapping height)
-    // TODO: handle height (or time) going beyond border - should not be possible
-    const resizeHeight = Math.floor(offsetY / cellHeight);
-    return resizeHeight * 48;
+  const handleResize = (eventId: string, offsetY: number): number => {
+    const calendarEvent = findViewModelOrThrow(eventId, viewModels);
+
+    // Resize height is equal the snapping interval, and since snapping is 1h intervals its [-48,0,48,96] etc.. Never in between.
+    const resizeHeight = Math.ceil(offsetY / cellHeight) * cellHeight;
+
+    // Should not be able to resize the event smaller than snapping interval
+    const adjustedEventHeight = calendarEvent.height + resizeHeight;
+    if (adjustedEventHeight < cellHeight) {
+      if (calendarEvent.height === cellHeight) {
+        return 0;
+      } else {
+        return calendarEvent.height * -1 + cellHeight;
+      }
+    }
+
+    // Should not be possible to resize outside container
+    const resizeHeightInMinutes = getMinutesFromPixelHeight(
+      resizeHeight,
+      cellHeight,
+    );
+    const newEndDate = add(calendarEvent.to, {
+      minutes: resizeHeightInMinutes,
+    });
+
+    const endOfDate = startOfDay(addDays(calendarEvent.from, 1));
+    if (isAfter(newEndDate, endOfDate)) {
+      return 0;
+    }
+
+    return resizeHeight;
   };
 
   const handleResizeEnd = (
     eventId: string,
-    resizeHeight: number,
+    offsetY: number,
   ): CalendarEventViewModel => {
-    const calendarEvent = viewModels.find((vm) => vm.id === eventId);
-
-    if (!calendarEvent)
-      throw Error(`Could not find calendarEvent with id: ${eventId}.`);
+    const calendarEvent = findViewModelOrThrow(eventId, viewModels);
 
     const minutesAdded =
       differenceInMinutes(calendarEvent.to, calendarEvent.from) +
-      (resizeHeight / cellHeight) * 60;
+      (offsetY / cellHeight) * 60;
 
     return {
       ...calendarEvent,
@@ -103,3 +133,13 @@ const useInteractiveHandlers = (
 };
 
 export default useInteractiveHandlers;
+
+const findViewModelOrThrow = (
+  eventId: string,
+  viewModels: CalendarEventViewModel[],
+): CalendarEventViewModel => {
+  const calendarEvent = viewModels.find((e) => e.id === eventId);
+  if (!calendarEvent)
+    throw Error(`Could not find calendarEvent with id: ${eventId}.`);
+  return calendarEvent;
+};

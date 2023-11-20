@@ -10,6 +10,13 @@ export const getPixelHeightFromMinutes = (
   return minutes * (cellHeight / 60);
 };
 
+export const getMinutesFromPixelHeight = (
+  height: number,
+  cellHeight: number,
+): number => {
+  return height / (cellHeight / 60);
+};
+
 export const getTopPixels = (date: Date, cellHeight: number) => {
   const midnight = startOfDay(date);
   return getPixelHeightFromMinutes(
