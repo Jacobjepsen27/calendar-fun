@@ -1,12 +1,6 @@
 import { PanInfo, motion } from "framer-motion";
 import { CalendarEventViewModel } from "../hooks/useEvents";
-import {
-  useRef,
-  useState,
-  CSSProperties,
-  useLayoutEffect,
-  useEffect,
-} from "react";
+import { useRef, useState, CSSProperties, useLayoutEffect } from "react";
 import CalendarEvent from "./CalendarEventUI";
 
 type CalendarEventPositionedProps = {

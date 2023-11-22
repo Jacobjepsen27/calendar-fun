@@ -10,6 +10,7 @@ import {
 
 export type CalendarInternals = {
   calendarRef: MutableRefObject<HTMLDivElement | null>;
+  scrollRef: MutableRefObject<HTMLDivElement | null>;
   columns: DateColumn[];
   columnWidth: number;
   cellHeight: number;
@@ -18,6 +19,7 @@ export type CalendarInternals = {
 
 const useCalendarInternals = (): CalendarInternals => {
   const calendarRef = useRef<HTMLDivElement | null>(null);
+  const scrollRef = useRef<HTMLDivElement | null>(null);
 
   const [cellHeight] = useState(48);
 
@@ -54,6 +56,7 @@ const useCalendarInternals = (): CalendarInternals => {
 
   return {
     calendarRef,
+    scrollRef,
     columns,
     columnWidth,
     cellHeight,

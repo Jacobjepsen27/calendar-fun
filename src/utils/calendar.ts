@@ -55,8 +55,8 @@ export const getRelativeClickCoordinates = (
   const rect = container.getBoundingClientRect();
 
   // Calculating mouse position relative to the container
-  let relativeX = mouseX - rect.left + container.scrollLeft;
-  let relativeY = mouseY - rect.top + container.scrollTop;
+  let relativeX = mouseX - rect.left;
+  let relativeY = mouseY - rect.top;
 
   // Clamping the values to ensure they are within the container's boundaries
   // minus 1 px to avoid hitting index 7 with math floor in 'const dayIndex = Math.floor(mouseX / columnWidth);'

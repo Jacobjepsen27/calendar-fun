@@ -68,7 +68,7 @@ const useInteractiveHandlers = (
   calendarInternals: CalendarInternals,
   viewModels: CalendarEventViewModel[],
 ) => {
-  const { cellHeight, columnWidth, columns, getDateFromEvent } =
+  const { scrollRef, cellHeight, columnWidth, columns, getDateFromEvent } =
     calendarInternals;
 
   const handleCalendarClick = (event: PointerOrMouseEvent): Date => {
@@ -80,7 +80,6 @@ const useInteractiveHandlers = (
     event: PointerOrMouseEvent,
     cursorOffsetY: number,
   ): [number, number] => {
-    // Dragged event
     const vm = findViewModelOrThrow(eventId, viewModels);
 
     const cursorPositionDate = getDateFromEvent(event, cursorOffsetY);
@@ -88,6 +87,8 @@ const useInteractiveHandlers = (
 
     const topPx = getTopPixels(newDate, cellHeight);
     const leftPx = getLeftPixels(newDate, columns, columnWidth);
+
+    handleAutoScroll(event);
     return [leftPx, topPx];
   };
 
@@ -148,6 +149,27 @@ const useInteractiveHandlers = (
         minutes: minutesAdded,
       }),
     };
+  };
+
+  const handleAutoScroll = (event: PointerOrMouseEvent): void => {
+    const scrollContainer = scrollRef.current;
+    if (!scrollContainer) return;
+
+    let containerRect = scrollContainer.getBoundingClientRect();
+    let bottom = containerRect.bottom;
+    let top = containerRect.top;
+
+    let threshold = 48; // Distance from the edge to start scrolling
+    const mouseY = event.clientY;
+
+    // Check if near bottom and start scrolling
+    if (mouseY > bottom - threshold) {
+      scrollContainer.scrollTop += 4;
+    }
+    // Check if near top and start scrolling
+    else if (mouseY < top + threshold) {
+      scrollContainer.scrollTop -= 4;
+    }
   };
 
   return {

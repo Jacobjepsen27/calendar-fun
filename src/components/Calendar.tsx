@@ -42,7 +42,7 @@ const Calendar = ({ events, onUpdateEvent }: CalendarProps) => {
   return (
     <div className="flex h-full w-full flex-col border ">
       <div className="border border-black">Monday - sunday</div>
-      <div className="overflow-auto">
+      <div className="overflow-auto" ref={calendarInternals.scrollRef}>
         <div className="relative flex overflow-hidden">
           <CalendarGridUI columns={7} rows={24} />
           {/* <div className="absolute inset-0 isolate">placeholder UI</div> */}
