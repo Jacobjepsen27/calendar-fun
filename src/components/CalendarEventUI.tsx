@@ -1,5 +1,5 @@
-import { CalendarEventViewModel } from "../hooks/useEvents";
 import { format } from "date-fns";
+import { CalendarEventViewModel } from "../models/models";
 
 type CalendarEventUIProps = {
   event: CalendarEventViewModel;

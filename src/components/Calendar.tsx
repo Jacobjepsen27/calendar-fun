@@ -1,9 +1,9 @@
-import { CalendarEvent } from "../hooks/useEvents";
 import CalendarEventPositioned from "./CalendarEventPositioned";
 import CalendarGridUI from "./CalendarGridUI";
 import useCalendarInternals from "../hooks/useCalendarInternals";
 import useViewModels from "../hooks/useViewModels";
 import useInteractiveHandlers from "../hooks/useInteractiveHandlers";
+import { CalendarEvent } from "../models/models";
 
 type CalendarProps = {
   events: CalendarEvent[];
@@ -21,6 +21,7 @@ const Calendar = ({ events, onUpdateEvent }: CalendarProps) => {
     cursorOffsetY: number,
   ): void => {
     const updatedViewModel = onPanEnd(eventId, event, cursorOffsetY);
+    // Consumer should know something updated
     onUpdateEvent({
       id: updatedViewModel.id,
       name: updatedViewModel.name,
@@ -31,6 +32,7 @@ const Calendar = ({ events, onUpdateEvent }: CalendarProps) => {
 
   const handleResizeEnd = (eventId: string, offsetY: number) => {
     const updatedViewModel = onResizeEnd(eventId, offsetY);
+    // Consumer should know something updated
     onUpdateEvent({
       id: updatedViewModel.id,
       name: updatedViewModel.name,
@@ -45,8 +47,6 @@ const Calendar = ({ events, onUpdateEvent }: CalendarProps) => {
       <div className="overflow-auto" ref={calendarInternals.scrollRef}>
         <div className="relative flex overflow-hidden">
           <CalendarGridUI columns={7} rows={24} />
-          {/* <div className="absolute inset-0 isolate">placeholder UI</div> */}
-          {/* Events UI */}
           <div
             ref={calendarInternals.calendarRef}
             className="absolute inset-0 isolate"

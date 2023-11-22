@@ -5,8 +5,8 @@ import {
   getTopPixels,
   getLeftPixels,
 } from "../utils/calendar";
-import { CalendarEvent, CalendarEventViewModel } from "./useEvents";
 import { CalendarInternals } from "./useCalendarInternals";
+import { CalendarEvent, CalendarEventViewModel } from "../models/models";
 
 const useViewModels = (
   calendarInternals: CalendarInternals,

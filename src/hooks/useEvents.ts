@@ -2,20 +2,7 @@ import { set } from "date-fns";
 import { useState } from "react";
 import { v4 as uuid } from "uuid";
 import { getWeekDatesFromDate } from "../utils/dates";
-
-export type CalendarEventViewModel = CalendarEvent & {
-  left: number;
-  top: number;
-  width: number;
-  height: number;
-};
-
-export type CalendarEvent = {
-  id: string;
-  name: string;
-  from: Date;
-  to: Date;
-};
+import { CalendarEvent } from "../models/models";
 
 const useEvents = () => {
   const [events, setEvents] = useState<CalendarEvent[]>(generateEventData());

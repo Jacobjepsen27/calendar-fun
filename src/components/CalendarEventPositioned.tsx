@@ -1,7 +1,7 @@
 import { PanInfo, motion } from "framer-motion";
-import { CalendarEventViewModel } from "../hooks/useEvents";
 import { useRef, useState, CSSProperties, useLayoutEffect } from "react";
 import CalendarEvent from "./CalendarEventUI";
+import { CalendarEventViewModel } from "../models/models";
 
 type CalendarEventPositionedProps = {
   viewModel: CalendarEventViewModel;
@@ -89,7 +89,7 @@ const CalendarEventPositioned = ({
   const dynamicMotionDivStyles: CSSProperties = {
     left: viewModel.left,
     top: viewModel.top,
-    height: viewModel.height + resizeHeight,
+    height: viewModel.height + resizeHeight - 1,
     width: mouseMovingRef.current ? viewModel.width : viewModel.width - 12,
     transform: `translate(${transformOffset[0]}px,${transformOffset[1]}px)`,
     touchAction: "none",

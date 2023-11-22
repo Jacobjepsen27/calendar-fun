@@ -13,7 +13,7 @@ import {
   getMinutesFromPixelHeight,
 } from "../utils/calendar";
 import { CalendarInternals } from "./useCalendarInternals";
-import { CalendarEventViewModel } from "./useEvents";
+import { CalendarEventViewModel } from "../models/models";
 
 // TODO: move validate functions somewhere better
 const validatePan = (

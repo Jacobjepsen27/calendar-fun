@@ -17,4 +17,16 @@ const BookingPage = () => {
   );
 };
 
+/**
+ * Calendar should ideally get a config object allowing consumer to customize behavoir,
+ * time range (e.g. 7-22)
+ * snapping interval - (hour, half hour, quarter).
+ * height of each cell
+ * Overlapping
+ * Calendar
+ * Event editible - pass validator function returning true or false which is called for all drag/resize events
+ *  - e.g. (event: CalendarModel) => event.userId === currentUserId
+ * Event display (JSX)
+ */
+
 export default BookingPage;
