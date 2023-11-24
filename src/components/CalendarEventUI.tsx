@@ -1,8 +1,8 @@
 import { format } from "date-fns";
-import { CalendarEventViewModel } from "../models/models";
+import { PositionedCalendarEvent } from "../models/models";
 
 type CalendarEventUIProps = {
-  event: CalendarEventViewModel;
+  event: PositionedCalendarEvent;
 };
 const CalendarEventUI = ({ event }: CalendarEventUIProps) => {
   return (

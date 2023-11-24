@@ -5,9 +5,11 @@ export type CalendarEvent = {
   to: Date;
 };
 
-export type CalendarEventViewModel = CalendarEvent & {
+export type PositionedCalendarEvent = CalendarEvent & {
   left: number;
   top: number;
   width: number;
   height: number;
+  transformX: number;
+  transformY: number;
 };

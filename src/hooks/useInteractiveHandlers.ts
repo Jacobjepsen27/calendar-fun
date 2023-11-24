@@ -13,139 +13,92 @@ import {
   getMinutesFromPixelHeight,
 } from "../utils/calendar";
 import { CalendarInternals } from "./useCalendarInternals";
-import { CalendarEventViewModel } from "../models/models";
+import { PositionedCalendarEvent } from "../models/models";
 
-// TODO: move validate functions somewhere better
-const validatePan = (
-  cursorPositionDate: Date,
-  vm: CalendarEventViewModel,
-): Date => {
-  const eventMinuteRange = differenceInMinutes(vm.to, vm.from);
-
-  const dateMinusMinuteRange = subMinutes(
-    startOfDay(addDays(cursorPositionDate, 1)),
-    eventMinuteRange,
-  );
-
-  return new Date(
-    Math.min(cursorPositionDate.getTime(), dateMinusMinuteRange.getTime()),
-  );
+export type EditEvent = {
+  positionedCalendarEvent: PositionedCalendarEvent;
+  event: PointerOrMouseEvent;
+  cursorOffsetY: number;
 };
 
-// TODO: move validate functions somewhere better
-const validateResize = (
-  resizeHeightPx: number,
-  vm: CalendarEventViewModel,
-  cellHeight: number,
-) => {
-  const adjustedEventHeight = vm.height + resizeHeightPx;
-  if (adjustedEventHeight < cellHeight) {
-    if (vm.height === cellHeight) {
-      return 0;
-    } else {
-      return vm.height * -1 + cellHeight;
-    }
-  }
-
-  // Should not be possible to resize outside container
-  const resizeHeightInMinutes = getMinutesFromPixelHeight(
-    resizeHeightPx,
-    cellHeight,
-  );
-  const newEndDate = add(vm.to, {
-    minutes: resizeHeightInMinutes,
-  });
-
-  const endOfDate = startOfDay(addDays(vm.from, 1));
-  if (isAfter(newEndDate, endOfDate)) {
-    return 0;
-  }
-
-  return resizeHeightPx;
-};
-
-const useInteractiveHandlers = (
-  calendarInternals: CalendarInternals,
-  viewModels: CalendarEventViewModel[],
-) => {
+const useInteractiveHandlers = (calendarInternals: CalendarInternals) => {
   const { scrollRef, cellHeight, columnWidth, columns, getDateFromEvent } =
     calendarInternals;
 
-  const handleCalendarClick = (event: PointerOrMouseEvent): Date => {
-    return getDateFromEvent(event, 0);
-  };
-
-  const handleOnPan = (
-    eventId: string,
-    event: PointerOrMouseEvent,
-    cursorOffsetY: number,
-  ): [number, number] => {
-    const vm = findViewModelOrThrow(eventId, viewModels);
-
+  const handleOnPan = (editEvent: EditEvent): PositionedCalendarEvent => {
+    const { positionedCalendarEvent, event, cursorOffsetY } = editEvent;
     const cursorPositionDate = getDateFromEvent(event, cursorOffsetY);
-    const newDate = validatePan(cursorPositionDate, vm);
+    const newDate = validatePan(cursorPositionDate, positionedCalendarEvent);
 
     const topPx = getTopPixels(newDate, cellHeight);
     const leftPx = getLeftPixels(newDate, columns, columnWidth);
 
     handleAutoScroll(event);
-    return [leftPx, topPx];
+    return {
+      ...positionedCalendarEvent,
+      transformX: leftPx - positionedCalendarEvent.left,
+      transformY: topPx - positionedCalendarEvent.top,
+    };
   };
 
-  const handleOnPanEnd = (
-    eventId: string,
-    event: PointerOrMouseEvent,
-    cursorOffsetY: number,
-  ): CalendarEventViewModel => {
-    const vm = findViewModelOrThrow(eventId, viewModels);
+  const handleOnPanEnd = (editEvent: EditEvent): PositionedCalendarEvent => {
+    const { positionedCalendarEvent, event, cursorOffsetY } = editEvent;
 
     const cursorPositionDate = getDateFromEvent(event, cursorOffsetY);
-    const newDate = validatePan(cursorPositionDate, vm);
+    const newDate = validatePan(cursorPositionDate, positionedCalendarEvent);
     return {
-      ...vm,
+      ...positionedCalendarEvent,
       from: newDate,
       to: add(newDate, {
-        minutes: differenceInMinutes(vm.to, vm.from),
+        minutes: differenceInMinutes(
+          positionedCalendarEvent.to,
+          positionedCalendarEvent.from,
+        ),
       }),
     };
   };
 
-  const handleResize = (eventId: string, offsetY: number): number => {
-    const vm = findViewModelOrThrow(eventId, viewModels);
+  const handleResize = (editEvent: EditEvent): number => {
+    // const vm = findViewModelOrThrow(eventId, viewModels);
+    const { positionedCalendarEvent, event, cursorOffsetY } = editEvent;
 
     // Resize height is equal the snapping interval, and since snapping is 1h intervals its [-48,0,48,96] etc.. Never in between.
-    const currentResizeHeightPx = Math.ceil(offsetY / cellHeight) * cellHeight;
+    const currentResizeHeightPx =
+      Math.ceil(cursorOffsetY / cellHeight) * cellHeight;
 
     const resizeHeightPx = validateResize(
       currentResizeHeightPx,
-      vm,
+      positionedCalendarEvent,
       cellHeight,
     );
 
     return resizeHeightPx;
   };
 
-  const handleResizeEnd = (
-    eventId: string,
-    offsetY: number,
-  ): CalendarEventViewModel => {
-    const vm = findViewModelOrThrow(eventId, viewModels);
+  const handleResizeEnd = (editEvent: EditEvent): PositionedCalendarEvent => {
+    // const vm = findViewModelOrThrow(eventId, viewModels);
+    const { positionedCalendarEvent, event, cursorOffsetY } = editEvent;
 
     // Resize height is equal the snapping interval, and since snapping is 1h intervals its [-48,0,48,96] etc.. Never in between.
-    const currentResizeHeightPx = Math.ceil(offsetY / cellHeight) * cellHeight;
+    const currentResizeHeightPx =
+      Math.ceil(cursorOffsetY / cellHeight) * cellHeight;
 
     const resizeHeightPx = validateResize(
       currentResizeHeightPx,
-      vm,
+      positionedCalendarEvent,
       cellHeight,
     );
 
     const minutesAdded =
-      differenceInMinutes(vm.to, vm.from) + (resizeHeightPx / cellHeight) * 60;
+      differenceInMinutes(
+        positionedCalendarEvent.to,
+        positionedCalendarEvent.from,
+      ) +
+      (resizeHeightPx / cellHeight) * 60;
 
     return {
-      ...vm,
-      to: add(vm.from, {
+      ...positionedCalendarEvent,
+      to: add(positionedCalendarEvent.from, {
         minutes: minutesAdded,
       }),
     };
@@ -173,22 +126,78 @@ const useInteractiveHandlers = (
   };
 
   return {
-    onPan: handleOnPan,
-    onPanEnd: handleOnPanEnd,
-    onResize: handleResize,
-    onResizeEnd: handleResizeEnd,
-    onCalendarClick: handleCalendarClick,
+    handleOnPan,
+    handleOnPanEnd,
+    handleResize,
+    handleResizeEnd,
+    // onPan: handleOnPan,
+    // onPanEnd: handleOnPanEnd,
+    // onResize: handleResize,
+    // onResizeEnd: handleResizeEnd,
+    // onCalendarClick: handleCalendarClick,
   };
 };
 
 export default useInteractiveHandlers;
 
-const findViewModelOrThrow = (
-  eventId: string,
-  viewModels: CalendarEventViewModel[],
-): CalendarEventViewModel => {
-  const calendarEvent = viewModels.find((e) => e.id === eventId);
-  if (!calendarEvent)
-    throw Error(`Could not find calendarEvent with id: ${eventId}.`);
-  return calendarEvent;
+// const findViewModelOrThrow = (
+//   eventId: string,
+//   viewModels: CalendarEventViewModel[],
+// ): CalendarEventViewModel => {
+//   const calendarEvent = viewModels.find((e) => e.id === eventId);
+//   if (!calendarEvent)
+//     throw Error(`Could not find calendarEvent with id: ${eventId}.`);
+//   return calendarEvent;
+// };
+
+// TODO: move validate functions somewhere better
+const validatePan = (
+  cursorPositionDate: Date,
+  positionedCalendarEvent: PositionedCalendarEvent,
+): Date => {
+  const eventMinuteRange = differenceInMinutes(
+    positionedCalendarEvent.to,
+    positionedCalendarEvent.from,
+  );
+
+  const dateMinusMinuteRange = subMinutes(
+    startOfDay(addDays(cursorPositionDate, 1)),
+    eventMinuteRange,
+  );
+
+  return new Date(
+    Math.min(cursorPositionDate.getTime(), dateMinusMinuteRange.getTime()),
+  );
+};
+
+// TODO: move validate functions somewhere better
+const validateResize = (
+  resizeHeightPx: number,
+  positionedCalendarEvent: PositionedCalendarEvent,
+  cellHeight: number,
+) => {
+  const adjustedEventHeight = positionedCalendarEvent.height + resizeHeightPx;
+  if (adjustedEventHeight < cellHeight) {
+    if (positionedCalendarEvent.height === cellHeight) {
+      return 0;
+    } else {
+      return positionedCalendarEvent.height * -1 + cellHeight;
+    }
+  }
+
+  // Should not be possible to resize outside container
+  const resizeHeightInMinutes = getMinutesFromPixelHeight(
+    resizeHeightPx,
+    cellHeight,
+  );
+  const newEndDate = add(positionedCalendarEvent.to, {
+    minutes: resizeHeightInMinutes,
+  });
+
+  const endOfDate = startOfDay(addDays(positionedCalendarEvent.from, 1));
+  if (isAfter(newEndDate, endOfDate)) {
+    return 0;
+  }
+
+  return resizeHeightPx;
 };
