@@ -7,19 +7,22 @@ import {
   getRelativeClickCoordinates,
   getDateFromCoordinates,
 } from "../utils/calendar";
+import { CalendarConfig } from "../components/Calendar";
+import { arrayFromNumber } from "../utils/array";
 
-export type CalendarInternals = {
-  calendarRef: MutableRefObject<HTMLDivElement | null>;
-  scrollRef: MutableRefObject<HTMLDivElement | null>;
-  columns: DateColumn[];
-  columnWidth: number;
-  cellHeight: number;
-  getDateFromEvent: (event: PointerOrMouseEvent, cursorOffsetY: number) => Date;
-};
+export type CalendarInternals = ReturnType<typeof useCalendarInternals>;
 
-const useCalendarInternals = (): CalendarInternals => {
+const useCalendarInternals = (config: CalendarConfig) => {
   const calendarRef = useRef<HTMLDivElement | null>(null);
   const scrollRef = useRef<HTMLDivElement | null>(null);
+
+  const timeRange = useMemo(() => {
+    const availableHours =
+      config.timeRange.endHour - config.timeRange.startHour;
+    return arrayFromNumber(availableHours).map(
+      (i) => i + config.timeRange.startHour,
+    );
+  }, [config]);
 
   const [cellHeight] = useState(48);
 
@@ -50,6 +53,8 @@ const useCalendarInternals = (): CalendarInternals => {
       columnWidth,
       columns,
       cellHeight,
+      config.timeRange.startHour,
+      config.timeRange.endHour,
     );
     return date;
   };
@@ -61,6 +66,11 @@ const useCalendarInternals = (): CalendarInternals => {
     columnWidth,
     cellHeight,
     getDateFromEvent,
+    time: {
+      timeRange,
+      startHour: config.timeRange.startHour,
+      endHour: config.timeRange.endHour,
+    },
   };
 };
 

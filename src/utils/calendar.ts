@@ -1,7 +1,13 @@
-import { differenceInMinutes, setMinutes, startOfDay } from "date-fns";
+import {
+  addHours,
+  differenceInMinutes,
+  setMinutes,
+  startOfDay,
+} from "date-fns";
 import { DateColumn } from "../components/BookingPage";
 import { findDateIndex } from "./dates";
 import PointerOrMouseEvent from "../types/PointerOrMouseEvent";
+import { CalendarInternals } from "../hooks/useCalendarInternals";
 
 export const getPixelHeightFromMinutes = (
   minutes: number,
@@ -17,11 +23,17 @@ export const getMinutesFromPixelHeight = (
   return height / (cellHeight / 60);
 };
 
-export const getTopPixels = (date: Date, cellHeight: number) => {
-  const midnight = startOfDay(date);
+export const getTopPixels = (
+  date: Date,
+  calendarInternals: CalendarInternals,
+) => {
+  const earliestHour = addHours(
+    startOfDay(date),
+    calendarInternals.time.startHour,
+  );
   return getPixelHeightFromMinutes(
-    differenceInMinutes(date, midnight),
-    cellHeight,
+    differenceInMinutes(date, earliestHour),
+    calendarInternals.cellHeight,
   );
 };
 
@@ -77,15 +89,17 @@ export const getDateFromCoordinates = (
   columnWidth: number,
   columns: DateColumn[],
   cellHeight: number,
+  startHour: number,
+  endHour: number,
 ): Date => {
   // Using math floor to get integer, which can be used to index column array
   const dayIndex = Math.floor(cursorX / columnWidth);
   const day = columns[dayIndex];
 
   let hours = Math.floor(cursorY / cellHeight);
-
+  hours += startHour;
   // 24 should ideally be a timerange set by the consumer of the calendar
-  if (hours === 24) {
+  if (hours === endHour) {
     hours -= 1;
   }
 

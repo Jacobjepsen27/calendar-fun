@@ -1,9 +1,8 @@
 import {
   add,
-  addDays,
   differenceInMinutes,
   isAfter,
-  startOfDay,
+  setHours,
   subMinutes,
 } from "date-fns";
 import PointerOrMouseEvent from "../types/PointerOrMouseEvent";
@@ -14,7 +13,6 @@ import {
 } from "../utils/calendar";
 import { CalendarInternals } from "./useCalendarInternals";
 import { PositionedCalendarEvent } from "../models/models";
-import { startOfNextDay } from "../utils/dates";
 
 export type EditEvent = {
   positionedCalendarEvent: PositionedCalendarEvent;
@@ -29,9 +27,13 @@ const useInteractiveHandlers = (calendarInternals: CalendarInternals) => {
   const handleOnPan = (editEvent: EditEvent): PositionedCalendarEvent => {
     const { positionedCalendarEvent, event, cursorOffsetY } = editEvent;
     const cursorPositionDate = getDateFromEvent(event, cursorOffsetY);
-    const newDate = validatePan(cursorPositionDate, positionedCalendarEvent);
+    const newDate = validatePan(
+      cursorPositionDate,
+      positionedCalendarEvent,
+      calendarInternals,
+    );
 
-    const topPx = getTopPixels(newDate, cellHeight);
+    const topPx = getTopPixels(newDate, calendarInternals);
     const leftPx = getLeftPixels(newDate, columns, columnWidth);
 
     handleAutoScroll(event);
@@ -59,7 +61,7 @@ const useInteractiveHandlers = (calendarInternals: CalendarInternals) => {
     const resizeHeightPx = validateResize(
       currentResizeHeightPx,
       positionedCalendarEvent,
-      cellHeight,
+      calendarInternals,
     );
 
     const minutesAdded =
@@ -112,19 +114,18 @@ export default useInteractiveHandlers;
 const validatePan = (
   cursorPositionDate: Date,
   positionedCalendarEvent: PositionedCalendarEvent,
+  calendarInternals: CalendarInternals,
 ): Date => {
   const eventMinuteRange = differenceInMinutes(
     positionedCalendarEvent.to,
     positionedCalendarEvent.from,
   );
-
-  const dateMinusMinuteRange = subMinutes(
-    startOfNextDay(cursorPositionDate),
+  const latestStartDate = subMinutes(
+    setHours(cursorPositionDate, calendarInternals.time.endHour),
     eventMinuteRange,
   );
-
   return new Date(
-    Math.min(cursorPositionDate.getTime(), dateMinusMinuteRange.getTime()),
+    Math.min(cursorPositionDate.getTime(), latestStartDate.getTime()),
   );
 };
 
@@ -132,8 +133,9 @@ const validatePan = (
 const validateResize = (
   resizeHeightPx: number,
   positionedCalendarEvent: PositionedCalendarEvent,
-  cellHeight: number,
+  calendarInternals: CalendarInternals,
 ) => {
+  const cellHeight = calendarInternals.cellHeight;
   const adjustedEventHeight = positionedCalendarEvent.height + resizeHeightPx;
   if (adjustedEventHeight < cellHeight) {
     if (positionedCalendarEvent.height === cellHeight) {
@@ -152,7 +154,10 @@ const validateResize = (
     minutes: resizeHeightInMinutes,
   });
 
-  const endOfDate = startOfDay(addDays(positionedCalendarEvent.from, 1));
+  const endOfDate = setHours(
+    positionedCalendarEvent.from,
+    calendarInternals.time.endHour,
+  );
   if (isAfter(newEndDate, endOfDate)) {
     return 0;
   }
