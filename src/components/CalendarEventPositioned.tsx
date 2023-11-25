@@ -131,7 +131,7 @@ const CalendarEventPositioned = ({
             }
           }}
         >
-          <CalendarEvent event={positionedCalendarEvent} />
+          <CalendarEvent event={updatedPositionedCalendarEvent} />
         </button>
       </motion.div>
       <motion.button
