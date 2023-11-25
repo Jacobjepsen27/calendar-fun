@@ -36,18 +36,6 @@ const useInteractiveHandlers = (calendarInternals: CalendarInternals) => {
     handleAutoScroll(event);
     return {
       ...positionedCalendarEvent,
-      transformX: leftPx - positionedCalendarEvent.left,
-      transformY: topPx - positionedCalendarEvent.top,
-    };
-  };
-
-  const handleOnPanEnd = (editEvent: EditEvent): PositionedCalendarEvent => {
-    const { positionedCalendarEvent, event, cursorOffsetY } = editEvent;
-
-    const cursorPositionDate = getDateFromEvent(event, cursorOffsetY);
-    const newDate = validatePan(cursorPositionDate, positionedCalendarEvent);
-    return {
-      ...positionedCalendarEvent,
       from: newDate,
       to: add(newDate, {
         minutes: differenceInMinutes(
@@ -55,29 +43,13 @@ const useInteractiveHandlers = (calendarInternals: CalendarInternals) => {
           positionedCalendarEvent.from,
         ),
       }),
+      transformX: leftPx - positionedCalendarEvent.left,
+      transformY: topPx - positionedCalendarEvent.top,
     };
   };
 
-  const handleResize = (editEvent: EditEvent): number => {
-    // const vm = findViewModelOrThrow(eventId, viewModels);
-    const { positionedCalendarEvent, event, cursorOffsetY } = editEvent;
-
-    // Resize height is equal the snapping interval, and since snapping is 1h intervals its [-48,0,48,96] etc.. Never in between.
-    const currentResizeHeightPx =
-      Math.ceil(cursorOffsetY / cellHeight) * cellHeight;
-
-    const resizeHeightPx = validateResize(
-      currentResizeHeightPx,
-      positionedCalendarEvent,
-      cellHeight,
-    );
-
-    return resizeHeightPx;
-  };
-
-  const handleResizeEnd = (editEvent: EditEvent): PositionedCalendarEvent => {
-    // const vm = findViewModelOrThrow(eventId, viewModels);
-    const { positionedCalendarEvent, event, cursorOffsetY } = editEvent;
+  const handleResize = (editEvent: EditEvent): PositionedCalendarEvent => {
+    const { positionedCalendarEvent, cursorOffsetY } = editEvent;
 
     // Resize height is equal the snapping interval, and since snapping is 1h intervals its [-48,0,48,96] etc.. Never in between.
     const currentResizeHeightPx =
@@ -98,10 +70,12 @@ const useInteractiveHandlers = (calendarInternals: CalendarInternals) => {
 
     return {
       ...positionedCalendarEvent,
+      height: positionedCalendarEvent.height + resizeHeightPx,
       to: add(positionedCalendarEvent.from, {
         minutes: minutesAdded,
       }),
     };
+    // return resizeHeightPx;
   };
 
   const handleAutoScroll = (event: PointerOrMouseEvent): void => {
@@ -127,28 +101,11 @@ const useInteractiveHandlers = (calendarInternals: CalendarInternals) => {
 
   return {
     handleOnPan,
-    handleOnPanEnd,
     handleResize,
-    handleResizeEnd,
-    // onPan: handleOnPan,
-    // onPanEnd: handleOnPanEnd,
-    // onResize: handleResize,
-    // onResizeEnd: handleResizeEnd,
-    // onCalendarClick: handleCalendarClick,
   };
 };
 
 export default useInteractiveHandlers;
-
-// const findViewModelOrThrow = (
-//   eventId: string,
-//   viewModels: CalendarEventViewModel[],
-// ): CalendarEventViewModel => {
-//   const calendarEvent = viewModels.find((e) => e.id === eventId);
-//   if (!calendarEvent)
-//     throw Error(`Could not find calendarEvent with id: ${eventId}.`);
-//   return calendarEvent;
-// };
 
 // TODO: move validate functions somewhere better
 const validatePan = (
