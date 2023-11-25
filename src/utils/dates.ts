@@ -1,4 +1,11 @@
-import { eachDayOfInterval, endOfWeek, isSameDay, startOfWeek } from "date-fns";
+import {
+  addDays,
+  eachDayOfInterval,
+  endOfWeek,
+  isSameDay,
+  startOfDay,
+  startOfWeek,
+} from "date-fns";
 
 /**
  * @param date
@@ -26,4 +33,8 @@ export const findDateIndex = (dates: Date[], targetDate: Date): number => {
     }
   }
   return -1;
+};
+
+export const startOfNextDay = (date: Date): Date => {
+  return startOfDay(addDays(date, 1));
 };

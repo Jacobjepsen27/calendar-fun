@@ -14,6 +14,7 @@ import {
 } from "../utils/calendar";
 import { CalendarInternals } from "./useCalendarInternals";
 import { PositionedCalendarEvent } from "../models/models";
+import { startOfNextDay } from "../utils/dates";
 
 export type EditEvent = {
   positionedCalendarEvent: PositionedCalendarEvent;
@@ -118,7 +119,7 @@ const validatePan = (
   );
 
   const dateMinusMinuteRange = subMinutes(
-    startOfDay(addDays(cursorPositionDate, 1)),
+    startOfNextDay(cursorPositionDate),
     eventMinuteRange,
   );
 
