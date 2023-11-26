@@ -1,4 +1,4 @@
-import { addDays, subDays } from "date-fns";
+import { addDays, startOfDay, subDays } from "date-fns";
 import { useReducer } from "react";
 
 export type CalendarControlState = {
@@ -36,7 +36,7 @@ const reducer = (
     case "today":
       return {
         ...state,
-        date: new Date(),
+        date: startOfDay(new Date()),
       };
     case "view":
       return {
