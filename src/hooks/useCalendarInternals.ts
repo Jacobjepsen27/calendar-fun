@@ -1,5 +1,4 @@
-import { useRef, useState, useMemo, MutableRefObject } from "react";
-import { DateColumn } from "../components/BookingPage";
+import { useRef, useState, useMemo } from "react";
 
 import { getWeekDatesFromDate } from "../utils/dates";
 import PointerOrMouseEvent from "../types/PointerOrMouseEvent";
@@ -7,15 +6,35 @@ import {
   getRelativeClickCoordinates,
   getDateFromCoordinates,
 } from "../utils/calendar";
-import { CalendarConfig } from "../components/Calendar";
 import { arrayFromNumber } from "../utils/array";
+import { CalendarControlState } from "./useCalendarControls";
+
+export type CalendarConfig = {
+  timeRange: {
+    startHour: number;
+    endHour: number;
+  };
+};
+
+export const defaultConfig: CalendarConfig = {
+  timeRange: {
+    startHour: 0,
+    endHour: 24,
+  },
+};
 
 export type CalendarInternals = ReturnType<typeof useCalendarInternals>;
 
-const useCalendarInternals = (config: CalendarConfig) => {
+const useCalendarInternals = (
+  providedConfig: CalendarConfig,
+  calendarControlState: CalendarControlState,
+) => {
   const calendarRef = useRef<HTMLDivElement | null>(null);
   const scrollRef = useRef<HTMLDivElement | null>(null);
+  const [cellHeight] = useState(48);
+  const [config] = useState(providedConfig);
 
+  // one time change, can be done in useEffect but should save config in useState to avoid rerenders happening
   const timeRange = useMemo(() => {
     const availableHours =
       config.timeRange.endHour - config.timeRange.startHour;
@@ -24,12 +43,15 @@ const useCalendarInternals = (config: CalendarConfig) => {
     );
   }, [config]);
 
-  const [cellHeight] = useState(48);
-
-  const [columns] = useState<DateColumn[]>(() => {
-    const weeks = getWeekDatesFromDate(new Date());
-    return weeks.map((date, index) => ({ index, date }));
-  });
+  const columns = useMemo(() => {
+    switch (calendarControlState.view) {
+      case "WEEK":
+        const weeks = getWeekDatesFromDate(calendarControlState.date);
+        return weeks.map((date, index) => ({ index, date }));
+      case "DAY":
+        return [{ index: 0, date: calendarControlState.date }];
+    }
+  }, [calendarControlState]);
 
   const columnWidth = useMemo(() => {
     if (calendarRef.current == null) return 1;
@@ -62,10 +84,10 @@ const useCalendarInternals = (config: CalendarConfig) => {
   return {
     calendarRef,
     scrollRef,
-    columns,
     columnWidth,
     cellHeight,
     getDateFromEvent,
+    columns,
     time: {
       timeRange,
       startHour: config.timeRange.startHour,

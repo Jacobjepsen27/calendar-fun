@@ -12,14 +12,13 @@ const usePositionedCalendarEvents = (
   events: CalendarEvent[],
   calendarInternals: CalendarInternals,
 ) => {
-  const { calendarRef, columns } = calendarInternals;
+  const { calendarRef } = calendarInternals;
   const [positionedCalendarEvents, setPositionedCalendarEvents] = useState<
     PositionedCalendarEvent[]
   >([]);
 
   useEffect(() => {
     if (calendarRef.current != null) {
-      // TODO: events in date range of current columns from calendarInternals
       const eventsInDateRange = getEventsInRange(events, calendarInternals);
       const viewModels: PositionedCalendarEvent[] = eventsInDateRange.map(
         (event) => {
@@ -75,6 +74,7 @@ function getEventsInRange(
   const columns = calendarInternals.columns;
 
   // Set the startDate and endDate based on columns
+  // TODO: should probably use the calenderControlstate to determine what view it is, instead of this
   if (columns.length > 1) {
     startDate = setHours(columns[0].date, startHour);
     endDate = setHours(columns[columns.length - 1].date, endHour);
@@ -90,7 +90,7 @@ function getEventsInRange(
   return events.filter((event) => {
     const eventStartDate = new Date(event.from);
     const eventEndDate = new Date(event.to);
-    if (eventStartDate >= startDate && eventEndDate < endDate) {
+    if (eventStartDate >= startDate && eventEndDate <= endDate) {
       if (
         eventStartDate.getHours() >= startHour &&
         eventEndDate.getHours() <= endHour
