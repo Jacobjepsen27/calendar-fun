@@ -1,6 +1,5 @@
 import { format } from "date-fns";
 import { CalendarInternals } from "../hooks/useCalendarInternals";
-import { da } from "date-fns/locale";
 import { CalendarControlState } from "../hooks/useCalendarControls";
 
 type HeaderProps = {
@@ -17,8 +16,8 @@ const Header = ({
   ...actions
 }: HeaderProps) => {
   return (
-    <div className="flex flex-col border-b-[1px]">
-      <div className="flex h-[48px] flex-row items-center justify-between">
+    <div className="isolate z-10 flex flex-col border-b-[1px] shadow-md">
+      <div className="flex flex-row items-center justify-between p-4">
         <div className="flex overflow-hidden rounded">
           <button
             onClick={() => actions.onViewChange("WEEK")}
@@ -67,15 +66,15 @@ const Header = ({
           </button>
         </div>
       </div>
-      <div className="flex flex-row">
-        <div className="h-[48px] w-[96px]"></div>
+      <div className="flex flex-row py-2">
+        <div className=" w-[96px]"></div>
         {calendarInternals.columns.map((column) => (
           <div
             key={column.index}
-            className="flex h-[48px] flex-1 items-center justify-center"
+            className="flex flex-1 items-center justify-center"
           >
-            <p className="text-xs">
-              {format(column.date, "iii MMMM do", { locale: da })}
+            <p className="text-xs font-bold">
+              {format(column.date, "E MMMM do")}
             </p>
           </div>
         ))}

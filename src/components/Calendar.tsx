@@ -8,6 +8,7 @@ import usePositionedCalendarEvents from "../hooks/usePositionedCalendarEvents";
 import { format, startOfDay } from "date-fns";
 import { useCalendarControls } from "../hooks/useCalendarControls";
 import Header from "./Header";
+import { convertToTimeString } from "../utils/dates";
 
 type CalendarProps = {
   events: CalendarEvent[];
@@ -41,7 +42,7 @@ const Calendar = ({
   };
 
   return (
-    <div className="bg-slate-150 flex h-full w-full flex-col border">
+    <div className="flex h-full w-full flex-col rounded-lg bg-slate-100">
       <Header
         calendarInternals={calendarInternals}
         next={() => dispatch({ type: "next" })}
@@ -50,7 +51,10 @@ const Calendar = ({
         onViewChange={(view) => dispatch({ type: "view", payload: view })}
         calendarControlState={state}
       />
-      <div className="overflow-auto" ref={calendarInternals.scrollRef}>
+      <div
+        className="isolate z-0 overflow-auto"
+        ref={calendarInternals.scrollRef}
+      >
         <div className="flex flex-row">
           {/* time column */}
           <div className="w-[96px]">
@@ -59,7 +63,7 @@ const Calendar = ({
                 key={time}
                 className="flex h-[48px] w-full items-center justify-center border-b-[1px] border-r-[1px] border-solid"
               >
-                {time}
+                <p className="text-sm">{convertToTimeString(time)}</p>
               </div>
             ))}
           </div>

@@ -1,4 +1,12 @@
-import { eachDayOfInterval, endOfWeek, isSameDay, startOfWeek } from "date-fns";
+import {
+  eachDayOfInterval,
+  endOfWeek,
+  format,
+  isSameDay,
+  setHours,
+  setMinutes,
+  startOfWeek,
+} from "date-fns";
 
 /**
  * @param date
@@ -26,4 +34,19 @@ export const findDateIndex = (dates: Date[], targetDate: Date): number => {
     }
   }
   return -1;
+};
+
+export const convertToTimeString = (hour: number) => {
+  if (hour < 0 || hour > 24) {
+    throw new Error("Hour must be between 0 and 24");
+  }
+
+  // Create a new date object
+  const date = new Date();
+
+  // Set the hour for the date object
+  const dateWithHour = setHours(setMinutes(date, 0), hour);
+
+  // Format the date object to a time string
+  return format(dateWithHour, "HH:mm");
 };
