@@ -57,7 +57,7 @@ const Calendar = ({
             {calendarInternals.time.timeRange.map((time) => (
               <div
                 key={time}
-                className="flex h-[48px] w-full items-center justify-center border-b-[1px] border-r-[1px] border-solid"
+                className="flex h-[48px] w-full items-center justify-center border-r-[1px] border-t-[1px] border-solid"
               >
                 <p className="text-sm">{convertToTimeString(time)}</p>
               </div>
@@ -71,7 +71,7 @@ const Calendar = ({
                 {calendarInternals.time.timeRange.map((time) => (
                   <div
                     key={time}
-                    className="h-[48px] w-full border-b-[1px] border-l-[1px] border-solid"
+                    className="h-[48px] w-full border-l-[1px] border-t-[1px] border-solid"
                   ></div>
                 ))}
               </div>

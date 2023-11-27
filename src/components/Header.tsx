@@ -12,7 +12,7 @@ type HeaderProps = {
 const Header = ({ calendarInternals, calendarControlResult }: HeaderProps) => {
   const { state, dispatch } = calendarControlResult;
   return (
-    <div className="isolate z-10 flex flex-col border-b-[1px] shadow-md">
+    <div className="isolate z-10 flex flex-col shadow-md">
       <div className="flex flex-row items-center justify-between p-4">
         <div className="flex overflow-hidden rounded">
           <button
