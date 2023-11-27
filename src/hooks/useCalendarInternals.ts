@@ -8,6 +8,7 @@ import {
 } from "../utils/calendar";
 import { arrayFromNumber } from "../utils/array";
 import { CalendarControlState } from "./useCalendarControls";
+import { useWindowSize } from "usehooks-ts";
 
 export type CalendarConfig = {
   timeRange: {
@@ -29,6 +30,7 @@ const useCalendarInternals = (
   providedConfig: CalendarConfig,
   calendarControlState: CalendarControlState,
 ) => {
+  const windowSize = useWindowSize();
   const calendarRef = useRef<HTMLDivElement | null>(null);
   const scrollRef = useRef<HTMLDivElement | null>(null);
   const [cellHeight] = useState(48);
@@ -56,7 +58,7 @@ const useCalendarInternals = (
   const columnWidth = useMemo(() => {
     if (calendarRef.current == null) return 1;
     return calendarRef.current.getBoundingClientRect().width / columns.length;
-  }, [columns, calendarRef.current]);
+  }, [columns, calendarRef.current, windowSize]);
 
   // get date based on the mouse coordinates in calendar container
   const getDateFromEvent = (
