@@ -89,7 +89,6 @@ const CalendarEventPositioned = ({
 
   const dynamicButtonStyles: CSSProperties = mouseMovingRef.current
     ? {
-        boxShadow: "0 10px 20px rgba(0,0,0,0.19), 0 6px 6px rgba(0,0,0,0.23)",
         cursor: "move",
       }
     : {};
@@ -104,6 +103,9 @@ const CalendarEventPositioned = ({
     transform: `translate(${updatedPositionedCalendarEvent.transformX}px,${updatedPositionedCalendarEvent.transformY}px)`,
     touchAction: "none",
     zIndex: mouseMovingRef.current ? 2 : 1,
+    boxShadow: mouseMovingRef.current
+      ? "0 10px 20px rgba(0,0,0,0.19), 0 6px 6px rgba(0,0,0,0.23)"
+      : "revert",
   };
 
   return (

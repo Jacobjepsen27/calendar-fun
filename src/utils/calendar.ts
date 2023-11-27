@@ -86,23 +86,45 @@ export const getRelativeClickCoordinates = (
  */
 export const getDateFromCoordinates = (
   [cursorX, cursorY]: [number, number],
-  columnWidth: number,
-  columns: DateColumn[],
-  cellHeight: number,
-  startHour: number,
-  endHour: number,
+  calendarInternals: CalendarInternals,
 ): Date => {
+  const {
+    columnWidth,
+    columns,
+    cellHeight,
+    time: { startHour, endHour },
+  } = calendarInternals;
   // Using math floor to get integer, which can be used to index column array
   const dayIndex = Math.floor(cursorX / columnWidth);
   const day = columns[dayIndex];
 
   let hours = Math.floor(cursorY / cellHeight);
   hours += startHour;
-  // 24 should ideally be a timerange set by the consumer of the calendar
   if (hours === endHour) {
     hours -= 1;
   }
 
   const minutes = hours * 60;
   return setMinutes(day.date, minutes);
+};
+
+export const getDateFromEvent = (
+  event: PointerOrMouseEvent,
+  cursorOffsetY: number,
+  calendarInternals: CalendarInternals,
+): Date => {
+  const { calendarRef, columnWidth, cellHeight, columns, time } =
+    calendarInternals;
+  // Coordinates inside container
+  const [relativeX, relativeY] = getRelativeClickCoordinates(
+    event,
+    cursorOffsetY,
+    calendarRef.current!,
+  );
+  // Calculate date based on those coordinates
+  const date = getDateFromCoordinates(
+    [relativeX, relativeY],
+    calendarInternals,
+  );
+  return date;
 };

@@ -9,6 +9,7 @@ import { format, startOfDay } from "date-fns";
 import { useCalendarControls } from "../hooks/useCalendarControls";
 import Header from "./Header";
 import { convertToTimeString } from "../utils/dates";
+import { getDateFromEvent } from "../utils/calendar";
 
 type CalendarProps = {
   events: CalendarEvent[];
@@ -82,7 +83,7 @@ const Calendar = ({
               onClick={(e) =>
                 console.log(
                   format(
-                    calendarInternals.getDateFromEvent(e, 0),
+                    getDateFromEvent(e, 0, calendarInternals),
                     "eee, HH:mm",
                   ),
                 )

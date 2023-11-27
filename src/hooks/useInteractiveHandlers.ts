@@ -10,6 +10,7 @@ import {
   getTopPixels,
   getLeftPixels,
   getMinutesFromPixelHeight,
+  getDateFromEvent,
 } from "../utils/calendar";
 import { CalendarInternals } from "./useCalendarInternals";
 import { PositionedCalendarEvent } from "../models/models";
@@ -21,12 +22,15 @@ export type EditEvent = {
 };
 
 const useInteractiveHandlers = (calendarInternals: CalendarInternals) => {
-  const { scrollRef, cellHeight, columnWidth, columns, getDateFromEvent } =
-    calendarInternals;
+  const { scrollRef, cellHeight, columnWidth, columns } = calendarInternals;
 
   const handleOnPan = (editEvent: EditEvent): PositionedCalendarEvent => {
     const { positionedCalendarEvent, event, cursorOffsetY } = editEvent;
-    const cursorPositionDate = getDateFromEvent(event, cursorOffsetY);
+    const cursorPositionDate = getDateFromEvent(
+      event,
+      cursorOffsetY,
+      calendarInternals,
+    );
     const newDate = validatePan(
       cursorPositionDate,
       positionedCalendarEvent,

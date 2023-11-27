@@ -1,11 +1,5 @@
 import { useRef, useState, useMemo } from "react";
-
 import { getWeekDatesFromDate } from "../utils/dates";
-import PointerOrMouseEvent from "../types/PointerOrMouseEvent";
-import {
-  getRelativeClickCoordinates,
-  getDateFromCoordinates,
-} from "../utils/calendar";
 import { arrayFromNumber } from "../utils/array";
 import { CalendarControlState } from "./useCalendarControls";
 import { useWindowSize } from "usehooks-ts";
@@ -15,6 +9,8 @@ export type CalendarConfig = {
     startHour: number;
     endHour: number;
   };
+  // Max and min event length
+  // Editable: (event: CalendarEvent) => boolean
 };
 
 export const defaultConfig: CalendarConfig = {
@@ -36,7 +32,6 @@ const useCalendarInternals = (
   const [cellHeight] = useState(48);
   const [config] = useState(providedConfig);
 
-  // one time change, can be done in useEffect but should save config in useState to avoid rerenders happening
   const timeRange = useMemo(() => {
     const availableHours =
       config.timeRange.endHour - config.timeRange.startHour;
@@ -60,35 +55,11 @@ const useCalendarInternals = (
     return calendarRef.current.getBoundingClientRect().width / columns.length;
   }, [columns, calendarRef.current, windowSize]);
 
-  // get date based on the mouse coordinates in calendar container
-  const getDateFromEvent = (
-    event: PointerOrMouseEvent,
-    cursorOffsetY: number,
-  ): Date => {
-    // Coordinates inside container
-    const [relativeX, relativeY] = getRelativeClickCoordinates(
-      event,
-      cursorOffsetY,
-      calendarRef.current!,
-    );
-    // Calculate date based on those coordinates
-    const date = getDateFromCoordinates(
-      [relativeX, relativeY],
-      columnWidth,
-      columns,
-      cellHeight,
-      config.timeRange.startHour,
-      config.timeRange.endHour,
-    );
-    return date;
-  };
-
   return {
     calendarRef,
     scrollRef,
     columnWidth,
     cellHeight,
-    getDateFromEvent,
     columns,
     time: {
       timeRange,
