@@ -45,11 +45,7 @@ const Calendar = ({
     <div className="flex h-full w-full flex-col rounded-lg bg-slate-100">
       <Header
         calendarInternals={calendarInternals}
-        next={() => dispatch({ type: "next" })}
-        prev={() => dispatch({ type: "prev" })}
-        today={() => dispatch({ type: "today" })}
-        onViewChange={(view) => dispatch({ type: "view", payload: view })}
-        calendarControlState={state}
+        calendarControlResult={{ state, dispatch }}
       />
       <div
         className="isolate z-0 overflow-auto"

@@ -45,9 +45,9 @@ const reducer = (
       };
   }
 };
+export type CalendarControlResult = ReturnType<typeof useCalendarControls>;
 
 export const useCalendarControls = (initialData: CalendarControlState) => {
   const [state, dispatch] = useReducer(reducer, initialData);
-
   return { state, dispatch };
 };

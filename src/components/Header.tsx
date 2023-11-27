@@ -1,42 +1,34 @@
 import { format } from "date-fns";
 import { CalendarInternals } from "../hooks/useCalendarInternals";
-import { CalendarControlState } from "../hooks/useCalendarControls";
+import { CalendarControlResult } from "../hooks/useCalendarControls";
+import { ComponentPropsWithoutRef } from "react";
+import Chevron from "../icons/Chevron";
+import Clock from "../icons/Clock";
 
 type HeaderProps = {
   calendarInternals: CalendarInternals;
-  next: () => void;
-  prev: () => void;
-  today: () => void;
-  onViewChange: (view: "WEEK" | "DAY") => void;
-  calendarControlState: CalendarControlState;
+  calendarControlResult: CalendarControlResult;
 };
-const Header = ({
-  calendarInternals,
-  calendarControlState,
-  ...actions
-}: HeaderProps) => {
+const Header = ({ calendarInternals, calendarControlResult }: HeaderProps) => {
+  const { state, dispatch } = calendarControlResult;
   return (
     <div className="isolate z-10 flex flex-col border-b-[1px] shadow-md">
       <div className="flex flex-row items-center justify-between p-4">
         <div className="flex overflow-hidden rounded">
           <button
-            onClick={() => actions.onViewChange("WEEK")}
+            onClick={() => dispatch({ type: "view", payload: "WEEK" })}
             type="button"
             className={`bg-blue-500 px-4 py-2 text-sm font-bold text-white hover:bg-blue-600 ${
-              calendarControlState.view === "WEEK"
-                ? "bg-blue-700"
-                : "bg-blue-500"
+              state.view === "WEEK" ? "bg-blue-700" : "bg-blue-500"
             }`}
           >
             Week
           </button>
           <button
-            onClick={() => actions.onViewChange("DAY")}
+            onClick={() => dispatch({ type: "view", payload: "DAY" })}
             type="button"
             className={`bg-blue-500 px-4 py-2 text-sm font-bold text-white hover:bg-blue-600 ${
-              calendarControlState.view === "DAY"
-                ? "bg-blue-700 "
-                : "bg-blue-500"
+              state.view === "DAY" ? "bg-blue-700 " : "bg-blue-500"
             }`}
           >
             Day
@@ -44,30 +36,32 @@ const Header = ({
         </div>
         <div className="flex gap-1">
           <button
-            onClick={actions.prev}
+            onClick={() => dispatch({ type: "prev" })}
             type="button"
             className="rounded bg-blue-500 px-4 py-2 text-sm font-bold text-white hover:bg-blue-700"
           >
-            &lt;
+            <Chevron direction="left" />
           </button>
           <button
-            onClick={actions.today}
+            onClick={() => dispatch({ type: "today" })}
             type="button"
             className="rounded bg-blue-500 px-4 py-2 text-sm font-bold text-white hover:bg-blue-700"
           >
             Today
           </button>
           <button
-            onClick={actions.next}
+            onClick={() => dispatch({ type: "next" })}
             type="button"
             className="rounded bg-blue-500 px-4 py-2 text-sm font-bold text-white hover:bg-blue-700"
           >
-            &gt;
+            <Chevron direction="right" />
           </button>
         </div>
       </div>
       <div className="flex flex-row py-2">
-        <div className=" w-[96px]"></div>
+        <div className="flex w-[96px] justify-center">
+          <Clock />
+        </div>
         {calendarInternals.columns.map((column) => (
           <div
             key={column.index}

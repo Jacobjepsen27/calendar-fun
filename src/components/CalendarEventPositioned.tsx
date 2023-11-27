@@ -60,7 +60,6 @@ const CalendarEventPositioned = ({
       cursorOffsetY: cursorOffsetYRef.current,
     };
     const updatedPositionedCalendarEvent = onPan(editEvent);
-    console.log(updatedPositionedCalendarEvent);
     onEventChange(updatedPositionedCalendarEvent);
     mouseMovingRef.current = false;
     cursorOffsetYRef.current = 0;
