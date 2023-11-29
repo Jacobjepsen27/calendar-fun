@@ -2,23 +2,23 @@ import { PanInfo, motion } from "framer-motion";
 import { useRef, useState, CSSProperties, useLayoutEffect } from "react";
 import CalendarEvent from "./CalendarEventUI";
 import { PositionedCalendarEvent } from "../models/models";
-import { CalendarInternals } from "../hooks/useCalendarInternals";
+import { CalendarContext } from "../hooks/useCalendar";
 import useInteractiveHandlers, {
   EditEvent,
 } from "../hooks/useInteractiveHandlers";
 
 type CalendarEventPositionedProps = {
   positionedCalendarEvent: PositionedCalendarEvent;
-  calendarInternals: CalendarInternals;
+  calendarContext: CalendarContext;
   onEventChange: (positionedCalendarEvent: PositionedCalendarEvent) => void;
 };
 const CalendarEventPositioned = ({
   positionedCalendarEvent,
-  calendarInternals,
+  calendarContext,
   onEventChange,
 }: CalendarEventPositionedProps) => {
   const { handleOnPan: onPan, handleResize: onResize } =
-    useInteractiveHandlers(calendarInternals);
+    useInteractiveHandlers(calendarContext);
   const eventRef = useRef<HTMLDivElement | null>(null);
   // Used to disable click event when dragging
   const mouseMovingRef = useRef(false);
@@ -43,6 +43,9 @@ const CalendarEventPositioned = ({
   };
 
   const handleOnPan = (event: PointerEvent) => {
+    if (positionedCalendarEvent.isReadonly) {
+      return;
+    }
     const editEvent: EditEvent = {
       positionedCalendarEvent,
       event,
@@ -53,6 +56,9 @@ const CalendarEventPositioned = ({
   };
 
   const handleOnPanEnd = (event: PointerEvent) => {
+    if (positionedCalendarEvent.isReadonly) {
+      return;
+    }
     event.stopPropagation();
     const editEvent: EditEvent = {
       positionedCalendarEvent,
@@ -60,6 +66,14 @@ const CalendarEventPositioned = ({
       cursorOffsetY: cursorOffsetYRef.current,
     };
     const updatedPositionedCalendarEvent = onPan(editEvent);
+
+    for (let validator of calendarContext.config.validators) {
+      if (!validator(updatedPositionedCalendarEvent, calendarContext)) {
+        console.log("Validation failed.");
+        setUpdatedPositionedCalendarEvent(positionedCalendarEvent);
+        return; // Stop execution if validation fails
+      }
+    }
     onEventChange(updatedPositionedCalendarEvent);
     mouseMovingRef.current = false;
     cursorOffsetYRef.current = 0;

@@ -12,7 +12,7 @@ import {
   getMinutesFromPixelHeight,
   getDateFromEvent,
 } from "../utils/calendar";
-import { CalendarInternals } from "./useCalendarInternals";
+import { CalendarContext } from "./useCalendar";
 import { PositionedCalendarEvent } from "../models/models";
 
 export type EditEvent = {
@@ -21,23 +21,24 @@ export type EditEvent = {
   cursorOffsetY: number;
 };
 
-const useInteractiveHandlers = (calendarInternals: CalendarInternals) => {
-  const { scrollRef, cellHeight, columnWidth, columns } = calendarInternals;
+const useInteractiveHandlers = (calendarContext: CalendarContext) => {
+  const { scrollRef, cellHeight, columnWidth, columns } =
+    calendarContext.calendarInternals;
 
   const handleOnPan = (editEvent: EditEvent): PositionedCalendarEvent => {
     const { positionedCalendarEvent, event, cursorOffsetY } = editEvent;
     const cursorPositionDate = getDateFromEvent(
       event,
       cursorOffsetY,
-      calendarInternals,
+      calendarContext,
     );
-    const newDate = validatePan(
+    const newDate = restrictPanDate(
       cursorPositionDate,
       positionedCalendarEvent,
-      calendarInternals,
+      calendarContext,
     );
 
-    const topPx = getTopPixels(newDate, calendarInternals);
+    const topPx = getTopPixels(newDate, calendarContext);
     const leftPx = getLeftPixels(newDate, columns, columnWidth);
 
     handleAutoScroll(event);
@@ -62,10 +63,10 @@ const useInteractiveHandlers = (calendarInternals: CalendarInternals) => {
     const currentResizeHeightPx =
       Math.ceil(cursorOffsetY / cellHeight) * cellHeight;
 
-    const resizeHeightPx = validateResize(
+    const resizeHeightPx = restrictResizeHeight(
       currentResizeHeightPx,
       positionedCalendarEvent,
-      calendarInternals,
+      calendarContext,
     );
 
     const minutesAdded =
@@ -115,17 +116,17 @@ const useInteractiveHandlers = (calendarInternals: CalendarInternals) => {
 export default useInteractiveHandlers;
 
 // TODO: move validate functions somewhere better
-const validatePan = (
+const restrictPanDate = (
   cursorPositionDate: Date,
   positionedCalendarEvent: PositionedCalendarEvent,
-  calendarInternals: CalendarInternals,
+  calendarContext: CalendarContext,
 ): Date => {
   const eventMinuteRange = differenceInMinutes(
     positionedCalendarEvent.to,
     positionedCalendarEvent.from,
   );
   const latestStartDate = subMinutes(
-    setHours(cursorPositionDate, calendarInternals.time.endHour),
+    setHours(cursorPositionDate, calendarContext.config.timeRange.endHour),
     eventMinuteRange,
   );
   return new Date(
@@ -134,12 +135,12 @@ const validatePan = (
 };
 
 // TODO: move validate functions somewhere better
-const validateResize = (
+const restrictResizeHeight = (
   resizeHeightPx: number,
   positionedCalendarEvent: PositionedCalendarEvent,
-  calendarInternals: CalendarInternals,
+  calendarContext: CalendarContext,
 ) => {
-  const cellHeight = calendarInternals.cellHeight;
+  const cellHeight = calendarContext.calendarInternals.cellHeight;
   const adjustedEventHeight = positionedCalendarEvent.height + resizeHeightPx;
   if (adjustedEventHeight < cellHeight) {
     if (positionedCalendarEvent.height === cellHeight) {
@@ -160,7 +161,7 @@ const validateResize = (
 
   const endOfDate = setHours(
     positionedCalendarEvent.from,
-    calendarInternals.time.endHour,
+    calendarContext.config.timeRange.endHour,
   );
   if (isAfter(newEndDate, endOfDate)) {
     return 0;

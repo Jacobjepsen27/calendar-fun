@@ -1,15 +1,12 @@
 import CalendarEventPositioned from "./CalendarEventPositioned";
-import useCalendarInternals, {
-  CalendarConfig,
-  defaultConfig,
-} from "../hooks/useCalendarInternals";
+import { CalendarConfig, defaultConfig } from "../hooks/useCalendar";
 import { CalendarEvent, PositionedCalendarEvent } from "../models/models";
 import usePositionedCalendarEvents from "../hooks/usePositionedCalendarEvents";
-import { format, startOfDay } from "date-fns";
-import { useCalendarControls } from "../hooks/useCalendarControls";
+import { format } from "date-fns";
 import Header from "./Header";
 import { convertToTimeString } from "../utils/dates";
 import { getDateFromEvent } from "../utils/calendar";
+import useCalendar from "../hooks/useCalendar";
 
 type CalendarProps = {
   events: CalendarEvent[];
@@ -21,21 +18,15 @@ const Calendar = ({
   onUpdateEvent,
   config = defaultConfig,
 }: CalendarProps) => {
-  const { state, dispatch } = useCalendarControls({
-    date: startOfDay(new Date()),
-    view: "WEEK",
-  });
-  const calendarInternals = useCalendarInternals(config, state);
-  const positionedCalendarEvents = usePositionedCalendarEvents(
-    events,
-    calendarInternals,
-  );
+  const calendarContext = useCalendar(config, events);
+  const positionedCalendarEvents = usePositionedCalendarEvents(calendarContext);
 
   const handleEventChange = (
     positionedCalendarEvent: PositionedCalendarEvent,
   ) => {
     onUpdateEvent({
       id: positionedCalendarEvent.id,
+      userId: positionedCalendarEvent.userId,
       name: positionedCalendarEvent.name,
       from: positionedCalendarEvent.from,
       to: positionedCalendarEvent.to,
@@ -44,18 +35,15 @@ const Calendar = ({
 
   return (
     <div className="flex h-full w-full flex-col rounded-lg bg-slate-100">
-      <Header
-        calendarInternals={calendarInternals}
-        calendarControlResult={{ state, dispatch }}
-      />
+      <Header calendarContext={calendarContext} />
       <div
         className="isolate z-0 overflow-auto"
-        ref={calendarInternals.scrollRef}
+        ref={calendarContext.calendarInternals.scrollRef}
       >
         <div className="flex flex-row">
           {/* time column */}
           <div className="w-[96px]">
-            {calendarInternals.time.timeRange.map((time) => (
+            {calendarContext.calendarInternals.timeRange.map((time) => (
               <div
                 key={time}
                 className="flex h-[48px] w-full items-center justify-center border-r-[1px] border-t-[1px] border-solid"
@@ -67,9 +55,9 @@ const Calendar = ({
           {/* events column */}
           <div className="relative flex flex-1 overflow-hidden">
             {/* Visual layout */}
-            {calendarInternals.columns.map((column) => (
+            {calendarContext.calendarInternals.columns.map((column) => (
               <div key={column.index} className="w-full">
-                {calendarInternals.time.timeRange.map((time) => (
+                {calendarContext.calendarInternals.timeRange.map((time) => (
                   <div
                     key={time}
                     className="h-[48px] w-full border-l-[1px] border-t-[1px] border-solid"
@@ -78,14 +66,11 @@ const Calendar = ({
               </div>
             ))}
             <div
-              ref={calendarInternals.calendarRef}
+              ref={calendarContext.calendarInternals.calendarRef}
               className="absolute inset-0 isolate"
               onClick={(e) =>
                 console.log(
-                  format(
-                    getDateFromEvent(e, 0, calendarInternals),
-                    "eee, HH:mm",
-                  ),
+                  format(getDateFromEvent(e, 0, calendarContext), "eee, HH:mm"),
                 )
               }
             >
@@ -93,7 +78,7 @@ const Calendar = ({
                 <CalendarEventPositioned
                   key={positionedCalendarEvent.id}
                   positionedCalendarEvent={positionedCalendarEvent}
-                  calendarInternals={calendarInternals}
+                  calendarContext={calendarContext}
                   onEventChange={handleEventChange}
                 />
               ))}

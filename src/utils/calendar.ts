@@ -7,7 +7,7 @@ import {
 import { DateColumn } from "../components/BookingPage";
 import { findDateIndex } from "./dates";
 import PointerOrMouseEvent from "../types/PointerOrMouseEvent";
-import { CalendarInternals } from "../hooks/useCalendarInternals";
+import { CalendarContext, CalendarInternals } from "../hooks/useCalendar";
 
 export const getPixelHeightFromMinutes = (
   minutes: number,
@@ -23,17 +23,14 @@ export const getMinutesFromPixelHeight = (
   return height / (cellHeight / 60);
 };
 
-export const getTopPixels = (
-  date: Date,
-  calendarInternals: CalendarInternals,
-) => {
+export const getTopPixels = (date: Date, calendarContext: CalendarContext) => {
   const earliestHour = addHours(
     startOfDay(date),
-    calendarInternals.time.startHour,
+    calendarContext.config.timeRange.startHour,
   );
   return getPixelHeightFromMinutes(
     differenceInMinutes(date, earliestHour),
-    calendarInternals.cellHeight,
+    calendarContext.calendarInternals.cellHeight,
   );
 };
 
@@ -86,14 +83,11 @@ export const getRelativeClickCoordinates = (
  */
 export const getDateFromCoordinates = (
   [cursorX, cursorY]: [number, number],
-  calendarInternals: CalendarInternals,
+  calendarContext: CalendarContext,
 ): Date => {
-  const {
-    columnWidth,
-    columns,
-    cellHeight,
-    time: { startHour, endHour },
-  } = calendarInternals;
+  const { columnWidth, columns, cellHeight } =
+    calendarContext.calendarInternals;
+  const { startHour, endHour } = calendarContext.config.timeRange;
   // Using math floor to get integer, which can be used to index column array
   const dayIndex = Math.floor(cursorX / columnWidth);
   const day = columns[dayIndex];
@@ -111,10 +105,10 @@ export const getDateFromCoordinates = (
 export const getDateFromEvent = (
   event: PointerOrMouseEvent,
   cursorOffsetY: number,
-  calendarInternals: CalendarInternals,
+  calendarContext: CalendarContext,
 ): Date => {
-  const { calendarRef, columnWidth, cellHeight, columns, time } =
-    calendarInternals;
+  const { calendarRef, columnWidth, cellHeight, columns } =
+    calendarContext.calendarInternals;
   // Coordinates inside container
   const [relativeX, relativeY] = getRelativeClickCoordinates(
     event,
@@ -122,9 +116,6 @@ export const getDateFromEvent = (
     calendarRef.current!,
   );
   // Calculate date based on those coordinates
-  const date = getDateFromCoordinates(
-    [relativeX, relativeY],
-    calendarInternals,
-  );
+  const date = getDateFromCoordinates([relativeX, relativeY], calendarContext);
   return date;
 };

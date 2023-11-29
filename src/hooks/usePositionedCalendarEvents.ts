@@ -1,30 +1,27 @@
-import { differenceInMinutes, setHours, startOfDay } from "date-fns";
+import { differenceInMinutes, setHours } from "date-fns";
 import { useState, useEffect } from "react";
 import {
   getPixelHeightFromMinutes,
   getTopPixels,
   getLeftPixels,
 } from "../utils/calendar";
-import { CalendarInternals } from "./useCalendarInternals";
+import { CalendarContext } from "./useCalendar";
 import { CalendarEvent, PositionedCalendarEvent } from "../models/models";
 
-const usePositionedCalendarEvents = (
-  events: CalendarEvent[],
-  calendarInternals: CalendarInternals,
-) => {
-  const { calendarRef } = calendarInternals;
+const usePositionedCalendarEvents = (calendarContext: CalendarContext) => {
+  const { calendarInternals, events, config } = calendarContext;
   const [positionedCalendarEvents, setPositionedCalendarEvents] = useState<
     PositionedCalendarEvent[]
   >([]);
 
   useEffect(() => {
-    if (calendarRef.current != null) {
-      const eventsInDateRange = getEventsInRange(events, calendarInternals);
+    if (calendarInternals.calendarRef.current != null) {
+      const eventsInDateRange = getEventsInRange(events, calendarContext);
       const viewModels: PositionedCalendarEvent[] = eventsInDateRange.map(
         (event) => {
           const [left, top, height, width] = calculateEventPosition(
             event,
-            calendarInternals,
+            calendarContext,
           );
 
           return {
@@ -33,6 +30,7 @@ const usePositionedCalendarEvents = (
             top,
             width,
             height,
+            isReadonly: config.isEventReadonly(event, calendarContext),
             transformX: 0,
             transformY: 0,
           };
@@ -49,41 +47,44 @@ export default usePositionedCalendarEvents;
 
 const calculateEventPosition = (
   event: CalendarEvent,
-  calendarInternals: CalendarInternals,
+  calendarContext: CalendarContext,
 ): [number, number, number, number] => {
-  const { cellHeight, columnWidth, columns } = calendarInternals;
+  const { cellHeight, columnWidth, columns } =
+    calendarContext.calendarInternals;
   const eventHeight = getPixelHeightFromMinutes(
     differenceInMinutes(event.to, event.from),
     cellHeight,
   );
   const eventWidth = columnWidth;
-  const topPx = getTopPixels(event.from, calendarInternals);
+  const topPx = getTopPixels(event.from, calendarContext);
   const leftPx = getLeftPixels(event.from, columns, columnWidth);
   return [leftPx, topPx, eventHeight, eventWidth];
 };
 
 function getEventsInRange(
   events: CalendarEvent[],
-  calendarInternals: CalendarInternals,
+  calendarContext: CalendarContext,
 ): CalendarEvent[] {
   let startDate: Date;
   let endDate: Date;
 
-  const startHour = calendarInternals.time.startHour;
-  const endHour = calendarInternals.time.endHour;
-  const columns = calendarInternals.columns;
+  const startHour = calendarContext.config.timeRange.startHour;
+  const endHour = calendarContext.config.timeRange.endHour;
+  const columns = calendarContext.calendarInternals.columns;
 
   // Set the startDate and endDate based on columns
-  // TODO: should probably use the calenderControlstate to determine what view it is, instead of this
-  if (columns.length > 1) {
-    startDate = setHours(columns[0].date, startHour);
-    endDate = setHours(columns[columns.length - 1].date, endHour);
-  } else if (columns.length === 1) {
-    const date = columns[0].date;
-    startDate = setHours(date, startHour);
-    endDate = setHours(date, endHour);
-  } else {
-    throw Error("No columns available");
+  switch (calendarContext.calendarControls.state.view) {
+    case "WEEK":
+      startDate = setHours(columns[0].date, startHour);
+      endDate = setHours(columns[columns.length - 1].date, endHour);
+      break;
+    case "DAY":
+      const date = columns[0].date;
+      startDate = setHours(date, startHour);
+      endDate = setHours(date, endHour);
+      break;
+    default:
+      throw Error("No columns available");
   }
 
   // Filter events that fall within the start and end dates and time range set in config

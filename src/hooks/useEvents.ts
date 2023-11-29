@@ -29,6 +29,7 @@ const generateEventData = (): CalendarEvent[] => {
   return [
     {
       id: uuid().toString(),
+      userId: "JACOB",
       name: "Event 1 (Mon)",
       from: set(new Date(2023, monday.getMonth(), monday.getDate()), {
         hours: 7,
@@ -45,6 +46,7 @@ const generateEventData = (): CalendarEvent[] => {
     },
     {
       id: uuid().toString(),
+      userId: "JACOB",
       name: "Event 2 (Tue)",
       from: set(new Date(2023, tuesday.getMonth(), tuesday.getDate()), {
         hours: 9,
@@ -61,7 +63,8 @@ const generateEventData = (): CalendarEvent[] => {
     },
     {
       id: uuid().toString(),
-      name: "Event 3 (Thu)",
+      userId: "MARIA",
+      name: "Event 3 Maria",
       from: set(new Date(2023, thursday.getMonth(), thursday.getDate()), {
         hours: 20,
         minutes: 0,
@@ -77,6 +80,7 @@ const generateEventData = (): CalendarEvent[] => {
     },
     {
       id: uuid().toString(),
+      userId: "JACOB",
       name: "Event 4 (Fri)",
       from: set(new Date(2023, friday.getMonth(), friday.getDate()), {
         hours: 12,

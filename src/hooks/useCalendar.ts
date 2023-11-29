@@ -1,16 +1,19 @@
 import { useRef, useState, useMemo } from "react";
 import { getWeekDatesFromDate } from "../utils/dates";
 import { arrayFromNumber } from "../utils/array";
-import { CalendarControlState } from "./useCalendarControls";
+import { useCalendarControls } from "./useCalendarControls";
 import { useWindowSize } from "usehooks-ts";
+import { CalendarEvent } from "../models/models";
 
 export type CalendarConfig = {
   timeRange: {
     startHour: number;
     endHour: number;
   };
-  // Max and min event length
-  // Editable: (event: CalendarEvent) => boolean
+  isEventReadonly: (event: CalendarEvent, context: CalendarContext) => boolean;
+  validators: Array<
+    (event: CalendarEvent, context: CalendarContext) => boolean
+  >;
 };
 
 export const defaultConfig: CalendarConfig = {
@@ -18,14 +21,18 @@ export const defaultConfig: CalendarConfig = {
     startHour: 0,
     endHour: 24,
   },
+  isEventReadonly: () => false,
+  validators: [],
 };
 
-export type CalendarInternals = ReturnType<typeof useCalendarInternals>;
+export type CalendarInternals = CalendarContext["calendarInternals"];
+export type CalendarContext = ReturnType<typeof useCalendar>;
 
-const useCalendarInternals = (
+const useCalendar = (
   providedConfig: CalendarConfig,
-  calendarControlState: CalendarControlState,
+  events: CalendarEvent[],
 ) => {
+  const calendarControls = useCalendarControls();
   const windowSize = useWindowSize();
   const calendarRef = useRef<HTMLDivElement | null>(null);
   const scrollRef = useRef<HTMLDivElement | null>(null);
@@ -41,14 +48,14 @@ const useCalendarInternals = (
   }, [config]);
 
   const columns = useMemo(() => {
-    switch (calendarControlState.view) {
+    switch (calendarControls.state.view) {
       case "WEEK":
-        const weeks = getWeekDatesFromDate(calendarControlState.date);
+        const weeks = getWeekDatesFromDate(calendarControls.state.date);
         return weeks.map((date, index) => ({ index, date }));
       case "DAY":
-        return [{ index: 0, date: calendarControlState.date }];
+        return [{ index: 0, date: calendarControls.state.date }];
     }
-  }, [calendarControlState]);
+  }, [calendarControls.state]);
 
   const columnWidth = useMemo(() => {
     if (calendarRef.current == null) return 1;
@@ -56,17 +63,21 @@ const useCalendarInternals = (
   }, [columns, calendarRef.current, windowSize]);
 
   return {
-    calendarRef,
-    scrollRef,
-    columnWidth,
-    cellHeight,
-    columns,
-    time: {
+    // Customizations from user
+    config,
+    // Calendars visual state (WEEK or DAY and current date)
+    calendarControls,
+    // Internals used for calculating positions, visuals etc.
+    calendarInternals: {
+      calendarRef,
+      scrollRef,
+      columnWidth,
+      cellHeight,
+      columns,
       timeRange,
-      startHour: config.timeRange.startHour,
-      endHour: config.timeRange.endHour,
     },
+    events,
   };
 };
 
-export default useCalendarInternals;
+export default useCalendar;

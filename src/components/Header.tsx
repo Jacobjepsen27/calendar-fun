@@ -1,16 +1,16 @@
 import { format } from "date-fns";
-import { CalendarInternals } from "../hooks/useCalendarInternals";
+import { CalendarContext, CalendarInternals } from "../hooks/useCalendar";
 import { CalendarControlResult } from "../hooks/useCalendarControls";
 import { ComponentPropsWithoutRef } from "react";
 import Chevron from "../icons/Chevron";
 import Clock from "../icons/Clock";
 
 type HeaderProps = {
-  calendarInternals: CalendarInternals;
-  calendarControlResult: CalendarControlResult;
+  calendarContext: CalendarContext;
 };
-const Header = ({ calendarInternals, calendarControlResult }: HeaderProps) => {
-  const { state, dispatch } = calendarControlResult;
+const Header = ({ calendarContext }: HeaderProps) => {
+  const { calendarControls, calendarInternals } = calendarContext;
+  const { state, dispatch } = calendarControls;
   return (
     <div className="isolate z-10 flex flex-col shadow-md">
       <div className="flex flex-row items-center justify-between p-4">

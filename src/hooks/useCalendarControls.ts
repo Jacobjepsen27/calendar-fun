@@ -47,7 +47,12 @@ const reducer = (
 };
 export type CalendarControlResult = ReturnType<typeof useCalendarControls>;
 
-export const useCalendarControls = (initialData: CalendarControlState) => {
+export const useCalendarControls = (
+  initialData: CalendarControlState = {
+    date: startOfDay(new Date()),
+    view: "WEEK",
+  },
+) => {
   const [state, dispatch] = useReducer(reducer, initialData);
   return { state, dispatch };
 };
