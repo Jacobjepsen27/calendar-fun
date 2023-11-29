@@ -43,9 +43,6 @@ const CalendarEventPositioned = ({
   };
 
   const handleOnPan = (event: PointerEvent) => {
-    if (positionedCalendarEvent.isReadonly) {
-      return;
-    }
     const editEvent: EditEvent = {
       positionedCalendarEvent,
       event,
@@ -56,9 +53,6 @@ const CalendarEventPositioned = ({
   };
 
   const handleOnPanEnd = (event: PointerEvent) => {
-    if (positionedCalendarEvent.isReadonly) {
-      return;
-    }
     event.stopPropagation();
     const editEvent: EditEvent = {
       positionedCalendarEvent,
@@ -66,7 +60,10 @@ const CalendarEventPositioned = ({
       cursorOffsetY: cursorOffsetYRef.current,
     };
     const updatedPositionedCalendarEvent = onPan(editEvent);
+    mouseMovingRef.current = false;
+    cursorOffsetYRef.current = 0;
 
+    // TODO: refactor this (duplicated in resize)
     for (let validator of calendarContext.config.validators) {
       if (!validator(updatedPositionedCalendarEvent, calendarContext)) {
         console.log("Validation failed.");
@@ -75,8 +72,6 @@ const CalendarEventPositioned = ({
       }
     }
     onEventChange(updatedPositionedCalendarEvent);
-    mouseMovingRef.current = false;
-    cursorOffsetYRef.current = 0;
   };
 
   const handleResize = (event: PointerEvent, info: PanInfo) => {
@@ -97,8 +92,16 @@ const CalendarEventPositioned = ({
       cursorOffsetY: info.offset.y,
     };
     const updatedPositionedCalendarEvent = onResize(editEvent);
-    onEventChange(updatedPositionedCalendarEvent);
     mouseMovingRef.current = false;
+    // TODO: refactor this (duplicated in pan)
+    for (let validator of calendarContext.config.validators) {
+      if (!validator(updatedPositionedCalendarEvent, calendarContext)) {
+        console.log("Validation failed.");
+        setUpdatedPositionedCalendarEvent(positionedCalendarEvent);
+        return; // Stop execution if validation fails
+      }
+    }
+    onEventChange(updatedPositionedCalendarEvent);
   };
 
   const dynamicButtonStyles: CSSProperties = mouseMovingRef.current
@@ -165,3 +168,27 @@ const CalendarEventPositioned = ({
 };
 
 export default CalendarEventPositioned;
+
+type EventReadonlyProps = {
+  positionedCalendarEvent: PositionedCalendarEvent;
+};
+export const EventReadonly = ({
+  positionedCalendarEvent,
+}: EventReadonlyProps) => {
+  return (
+    <div
+      className="absolute overflow-hidden rounded-md"
+      style={{
+        left: positionedCalendarEvent.left,
+        top: positionedCalendarEvent.top,
+        height: positionedCalendarEvent.height,
+        width: positionedCalendarEvent.width - 12,
+        zIndex: 1,
+      }}
+    >
+      <div className="h-full w-full bg-sky-200">
+        <CalendarEvent event={positionedCalendarEvent} />
+      </div>
+    </div>
+  );
+};

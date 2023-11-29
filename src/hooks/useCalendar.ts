@@ -1,4 +1,4 @@
-import { useRef, useState, useMemo } from "react";
+import { useRef, useState, useMemo, useEffect } from "react";
 import { getWeekDatesFromDate } from "../utils/dates";
 import { arrayFromNumber } from "../utils/array";
 import { useCalendarControls } from "./useCalendarControls";
@@ -30,7 +30,7 @@ export type CalendarContext = ReturnType<typeof useCalendar>;
 
 const useCalendar = (
   providedConfig: CalendarConfig,
-  events: CalendarEvent[],
+  providedEvents: CalendarEvent[],
 ) => {
   const calendarControls = useCalendarControls();
   const windowSize = useWindowSize();
@@ -38,6 +38,11 @@ const useCalendar = (
   const scrollRef = useRef<HTMLDivElement | null>(null);
   const [cellHeight] = useState(48);
   const [config] = useState(providedConfig);
+  const [events, setEvents] = useState(providedEvents);
+
+  useEffect(() => {
+    setEvents(events);
+  }, [providedEvents]);
 
   const timeRange = useMemo(() => {
     const availableHours =

@@ -1,7 +1,5 @@
 import { format } from "date-fns";
-import { CalendarContext, CalendarInternals } from "../hooks/useCalendar";
-import { CalendarControlResult } from "../hooks/useCalendarControls";
-import { ComponentPropsWithoutRef } from "react";
+import { CalendarContext } from "../hooks/useCalendar";
 import Chevron from "../icons/Chevron";
 import Clock from "../icons/Clock";
 
@@ -68,7 +66,7 @@ const Header = ({ calendarContext }: HeaderProps) => {
             className="flex flex-1 items-center justify-center"
           >
             <p className="text-xs font-bold">
-              {format(column.date, "E MMMM do")}
+              {format(column.date, "E MMM do")}
             </p>
           </div>
         ))}

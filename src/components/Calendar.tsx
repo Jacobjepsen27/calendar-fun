@@ -1,4 +1,6 @@
-import CalendarEventPositioned from "./CalendarEventPositioned";
+import CalendarEventPositioned, {
+  EventReadonly,
+} from "./CalendarEventPositioned";
 import { CalendarConfig, defaultConfig } from "../hooks/useCalendar";
 import { CalendarEvent, PositionedCalendarEvent } from "../models/models";
 import usePositionedCalendarEvents from "../hooks/usePositionedCalendarEvents";
@@ -74,14 +76,25 @@ const Calendar = ({
                 )
               }
             >
-              {positionedCalendarEvents.map((positionedCalendarEvent) => (
-                <CalendarEventPositioned
-                  key={positionedCalendarEvent.id}
-                  positionedCalendarEvent={positionedCalendarEvent}
-                  calendarContext={calendarContext}
-                  onEventChange={handleEventChange}
-                />
-              ))}
+              {positionedCalendarEvents.map((positionedCalendarEvent) => {
+                if (positionedCalendarEvent.isReadonly) {
+                  return (
+                    <EventReadonly
+                      key={positionedCalendarEvent.id}
+                      positionedCalendarEvent={positionedCalendarEvent}
+                    />
+                  );
+                } else {
+                  return (
+                    <CalendarEventPositioned
+                      key={positionedCalendarEvent.id}
+                      positionedCalendarEvent={positionedCalendarEvent}
+                      calendarContext={calendarContext}
+                      onEventChange={handleEventChange}
+                    />
+                  );
+                }
+              })}
             </div>
           </div>
         </div>
