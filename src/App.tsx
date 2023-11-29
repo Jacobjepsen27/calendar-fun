@@ -2,7 +2,7 @@ import BookingPage from "./components/BookingPage";
 
 function App() {
   return (
-    <div className="w-full">
+    <div className="h-full w-full">
       <BookingPage />
     </div>
   );

@@ -64,7 +64,7 @@ const generateEventData = (): CalendarEvent[] => {
     {
       id: uuid().toString(),
       userId: "MARIA",
-      name: "Event 3 Maria",
+      name: "Event 3",
       from: set(new Date(2023, thursday.getMonth(), thursday.getDate()), {
         hours: 20,
         minutes: 0,
