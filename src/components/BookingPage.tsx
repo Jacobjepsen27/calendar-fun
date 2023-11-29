@@ -49,10 +49,6 @@ const BookingPage = () => {
     </div>
   );
 };
-/**
- * validators: (event: CalendarEvent) => boolean
- * validators.foreach(v => v(e))
- */
 
 /**
  * Calendar should ideally get a config object allowing consumer to customize behavoir,

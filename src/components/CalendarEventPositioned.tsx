@@ -27,6 +27,7 @@ const CalendarEventPositioned = ({
 
   const [updatedPositionedCalendarEvent, setUpdatedPositionedCalendarEvent] =
     useState(positionedCalendarEvent);
+
   useLayoutEffect(() => {
     setUpdatedPositionedCalendarEvent(positionedCalendarEvent);
   }, [positionedCalendarEvent]);
