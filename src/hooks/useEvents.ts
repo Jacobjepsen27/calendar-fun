@@ -25,6 +25,7 @@ const generateEventData = (): CalendarEvent[] => {
   const tuesday = dates[1];
   const thursday = dates[3];
   const friday = dates[4];
+  const sunday = dates[6];
 
   return [
     {
@@ -89,6 +90,23 @@ const generateEventData = (): CalendarEvent[] => {
         milliseconds: 0,
       }),
       to: set(new Date(2024, friday.getMonth(), friday.getDate()), {
+        hours: 15,
+        minutes: 0,
+        seconds: 0,
+        milliseconds: 0,
+      }),
+    },
+    {
+      id: uuid().toString(),
+      userId: "JACOB",
+      name: "Event 5 (Sun)",
+      from: set(new Date(2024, sunday.getMonth(), sunday.getDate()), {
+        hours: 12,
+        minutes: 0,
+        seconds: 0,
+        milliseconds: 0,
+      }),
+      to: set(new Date(2024, sunday.getMonth(), sunday.getDate()), {
         hours: 15,
         minutes: 0,
         seconds: 0,
