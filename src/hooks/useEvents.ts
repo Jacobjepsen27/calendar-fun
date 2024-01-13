@@ -31,13 +31,13 @@ const generateEventData = (): CalendarEvent[] => {
       id: uuid().toString(),
       userId: "JACOB",
       name: "Event 1 (Mon)",
-      from: set(new Date(2023, monday.getMonth(), monday.getDate()), {
+      from: set(new Date(2024, monday.getMonth(), monday.getDate()), {
         hours: 7,
         minutes: 0,
         seconds: 0,
         milliseconds: 0,
       }),
-      to: set(new Date(2023, monday.getMonth(), monday.getDate()), {
+      to: set(new Date(2024, monday.getMonth(), monday.getDate()), {
         hours: 8,
         minutes: 0,
         seconds: 0,
@@ -48,13 +48,13 @@ const generateEventData = (): CalendarEvent[] => {
       id: uuid().toString(),
       userId: "JACOB",
       name: "Event 2 (Tue)",
-      from: set(new Date(2023, tuesday.getMonth(), tuesday.getDate()), {
+      from: set(new Date(2024, tuesday.getMonth(), tuesday.getDate()), {
         hours: 9,
         minutes: 0,
         seconds: 0,
         milliseconds: 0,
       }),
-      to: set(new Date(2023, tuesday.getMonth(), tuesday.getDate()), {
+      to: set(new Date(2024, tuesday.getMonth(), tuesday.getDate()), {
         hours: 11,
         minutes: 0,
         seconds: 0,
@@ -65,13 +65,13 @@ const generateEventData = (): CalendarEvent[] => {
       id: uuid().toString(),
       userId: "MARIA",
       name: "Event 3",
-      from: set(new Date(2023, thursday.getMonth(), thursday.getDate()), {
+      from: set(new Date(2024, thursday.getMonth(), thursday.getDate()), {
         hours: 20,
         minutes: 0,
         seconds: 0,
         milliseconds: 0,
       }),
-      to: set(new Date(2023, thursday.getMonth(), thursday.getDate()), {
+      to: set(new Date(2024, thursday.getMonth(), thursday.getDate()), {
         hours: 22,
         minutes: 0,
         seconds: 0,
@@ -82,13 +82,13 @@ const generateEventData = (): CalendarEvent[] => {
       id: uuid().toString(),
       userId: "JACOB",
       name: "Event 4 (Fri)",
-      from: set(new Date(2023, friday.getMonth(), friday.getDate()), {
+      from: set(new Date(2024, friday.getMonth(), friday.getDate()), {
         hours: 12,
         minutes: 0,
         seconds: 0,
         milliseconds: 0,
       }),
-      to: set(new Date(2023, friday.getMonth(), friday.getDate()), {
+      to: set(new Date(2024, friday.getMonth(), friday.getDate()), {
         hours: 15,
         minutes: 0,
         seconds: 0,
