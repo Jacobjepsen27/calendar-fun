@@ -36,10 +36,10 @@ const Calendar = ({
   };
 
   return (
-    <div className="flex h-full w-full flex-col rounded-lg bg-slate-100">
+    <div className="flex h-full w-full flex-col">
       <Header calendarContext={calendarContext} />
       <div
-        className="isolate z-0 overflow-auto"
+        className="isolate z-0 overflow-auto rounded-bl-lg rounded-br-lg bg-slate-100"
         ref={calendarContext.calendarInternals.scrollRef}
       >
         <div className="flex flex-row">

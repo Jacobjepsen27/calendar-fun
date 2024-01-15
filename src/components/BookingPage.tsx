@@ -50,11 +50,4 @@ const BookingPage = () => {
   );
 };
 
-/**
- * Calendar should ideally get a config object allowing consumer to customize behavoir,
- * snapping interval - (hour, half hour, quarter).
- * height of each cell
- * Event display (JSX)
- */
-
 export default BookingPage;

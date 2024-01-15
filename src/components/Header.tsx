@@ -10,7 +10,7 @@ const Header = ({ calendarContext }: HeaderProps) => {
   const { calendarControls, calendarInternals } = calendarContext;
   const { state, dispatch } = calendarControls;
   return (
-    <div className="isolate z-10 flex flex-col shadow-md">
+    <div className="isolate z-10 flex flex-col rounded-tl-lg  rounded-tr-lg bg-slate-100 shadow-md">
       <div className="flex flex-row items-center justify-between p-4">
         <div className="flex overflow-hidden rounded">
           <button
