@@ -38,12 +38,6 @@ const useCalendar = (
   const scrollRef = useRef<HTMLDivElement | null>(null);
   const [cellHeight] = useState(48);
   const [config] = useState(providedConfig);
-  // const [events, setEvents] = useState(providedEvents);
-
-  // useEffect(() => {
-  //   console.log("set new provided events");
-  //   setEvents(providedEvents);
-  // }, [providedEvents]);
 
   const timeRange = useMemo(() => {
     const availableHours =

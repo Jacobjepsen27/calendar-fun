@@ -14,7 +14,7 @@ const customConfig: CalendarConfig = {
     endHour: 22,
   },
   isEventReadonly: (event, context) => {
-    // This can be my userId from JWT.
+    // Check if userId is different from my cookies
     return event.from < new Date() || event.userId !== "JACOB";
   },
   validators: [

@@ -1,14 +1,23 @@
 import CalendarEventPositioned, {
   EventReadonly,
 } from "./CalendarEventPositioned";
-import { CalendarConfig, defaultConfig } from "../hooks/useCalendar";
+import {
+  CalendarConfig,
+  CalendarContext,
+  defaultConfig,
+} from "../hooks/useCalendar";
 import { CalendarEvent, PositionedCalendarEvent } from "../models/models";
 import usePositionedCalendarEvents from "../hooks/usePositionedCalendarEvents";
 import { format } from "date-fns";
 import Header from "./Header";
 import { convertToTimeString } from "../utils/dates";
-import { getDateFromEvent } from "../utils/calendar";
+import {
+  getDateFromEvent,
+  getLeftPixels,
+  getTopPixels,
+} from "../utils/calendar";
 import useCalendar from "../hooks/useCalendar";
+import { useEffect, useMemo } from "react";
 
 type CalendarProps = {
   events: CalendarEvent[];
@@ -96,9 +105,38 @@ const Calendar = ({
                 }
               })}
             </div>
+            <CurrentTime context={calendarContext} />
           </div>
         </div>
       </div>
+    </div>
+  );
+};
+
+type CurrentTimeProps = {
+  context: CalendarContext;
+};
+const CurrentTime = ({ context }: CurrentTimeProps) => {
+  // have columnWidth
+  // fixed height
+  // Reuse logic calculating event top & left position
+  // if current time is not in range of calendar time, dont show anything
+  // TODO: useEffect set timer to refresh
+  const [left, top, width] = useMemo(() => {
+    const now = new Date();
+    const topPx = getTopPixels(now, context);
+    const leftPx = getLeftPixels(
+      now,
+      context.calendarInternals.columns,
+      context.calendarInternals.columnWidth,
+    );
+    return [leftPx, topPx, context.calendarInternals.columnWidth];
+  }, [context]);
+
+  console.log("val: ", top, left, width);
+  return (
+    <div style={{ top, left, width }} className="absolute h-[2px] bg-red-500">
+      <div className="absolute right-[0px] top-[-3px] h-[8px] w-[8px] rounded-full bg-red-500"></div>
     </div>
   );
 };
