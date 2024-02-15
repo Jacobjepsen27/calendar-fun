@@ -113,5 +113,22 @@ const generateEventData = (): CalendarEvent[] => {
         milliseconds: 0,
       }),
     },
+    {
+      id: uuid().toString(),
+      userId: "MARIA",
+      name: "Event 6 (Mar)",
+      from: set(new Date(2024, sunday.getMonth(), sunday.getDate()), {
+        hours: 16,
+        minutes: 0,
+        seconds: 0,
+        milliseconds: 0,
+      }),
+      to: set(new Date(2024, sunday.getMonth(), sunday.getDate()), {
+        hours: 19,
+        minutes: 0,
+        seconds: 0,
+        milliseconds: 0,
+      }),
+    },
   ];
 };
